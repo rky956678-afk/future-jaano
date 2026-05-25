@@ -17,7 +17,7 @@ app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
- serializers: {
+serializers: {
   req(req: any) {
     return {
       id: req.id,
@@ -30,6 +30,8 @@ app.use(
     return {
       statusCode: res.statusCode,
     };
+  },
+},
   },
 },
         };
