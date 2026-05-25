@@ -17,19 +17,21 @@ app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
-    logger,
-    serializers: {
-     req(req: Request)
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
+ serializers: {
+  req(req: any) {
+    return {
+      id: req.id,
+      method: req.method,
+      url: req.url?.split("?")[0],
+    };
+  },
 
-      res(res: Response)
-        return {
-          statusCode: res.statusCode,
+  res(res: any) {
+    return {
+      statusCode: res.statusCode,
+    };
+  },
+},
         };
       },
     },
