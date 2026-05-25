@@ -14,6 +14,10 @@ import {
 import router from "./routes";
 import { logger } from "./lib/logger";
 
+const app: Express = express();
+
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,
@@ -34,14 +38,7 @@ app.use(
     },
   }),
 );
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
-  }),
-);
-
+     
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
