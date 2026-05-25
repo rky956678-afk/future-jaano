@@ -19,20 +19,24 @@ app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req: Request)
+      req(req: any) {
         return {
           id: req.id,
           method: req.method,
           url: req.url?.split("?")[0],
         };
       },
-      res(res: Response)
+
+      res(res: any) {
         return {
           statusCode: res.statusCode,
         };
       },
     },
   }),
+);
+  }),
+);
 );
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
