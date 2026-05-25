@@ -2,10 +2,10 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get("/", async (_req, res) => {
-  return res.status(200).json({
+router.get("/", (_req, res) => {
+  res.json({
     success: true,
-    message: "Push API working",
+    message: "Push route working",
   });
 });
 
