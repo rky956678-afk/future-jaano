@@ -25,23 +25,16 @@ serializers: {
       url: req.url?.split("?")[0],
     };
   },
+res(res: any) {
+  return {
+    statusCode: res.statusCode,
+  };
+},
+}),
 
-  res(res: any) {
-    return {
-      statusCode: res.statusCode,
-    };
-  },
-},
-  },
-},
-        };
-      },
-    },
-  }),
-);
-  }),
-);
-);
+    
+ 
+
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
