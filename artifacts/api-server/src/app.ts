@@ -19,7 +19,7 @@ app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req: any) {
+     req(req: Request)
         return {
           id: req.id,
           method: req.method,
@@ -27,7 +27,7 @@ app.use(
         };
       },
 
-      res(res: any) {
+      res(res: Response)
         return {
           statusCode: res.statusCode,
         };
