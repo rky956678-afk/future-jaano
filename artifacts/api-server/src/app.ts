@@ -16,7 +16,7 @@ const app: Express = express();
 app.set("trust proxy", 1);
 
 app.use(
-  pinoHttp({
+  pinoHttp.default({
     logger,
     serializers: {
       req(req: any) {
