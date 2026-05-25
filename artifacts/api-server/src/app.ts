@@ -38,7 +38,7 @@ app.use(
     },
   }),
 );
-     
+
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
