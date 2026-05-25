@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Future Jaano"
+version = "1.0.0"
+id = "artifacts/future-jaano"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21903
+
+[services.development]
+run = "pnpm --filter @workspace/future-jaano run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/future-jaano", "run", "build" ]
+publicDir = "artifacts/future-jaano/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21903"
+BASE_PATH = "/"

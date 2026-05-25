@@ -1,0 +1,110 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "RPMaCZEwBgodJja7u41Ir"
+uri = "file://artifacts/future-jaano/src/assets/hero-bg.png"
+type = "image"
+title = "celestial starry night background"
+
+[[generated]]
+id = "kyYRxcZ9GlKGqDLO-r6He"
+uri = "file://artifacts/future-jaano/src/assets/mandala.png"
+type = "image"
+title = "golden mandala decorative pattern"
+
+[[generated]]
+id = "chVSaV19lyyEiTs7s3ZzS"
+uri = "file://artifacts/future-jaano/public/icon-source.png"
+type = "image"
+title = "future jaano app icon"
+
+[[generated]]
+id = "PzGP-goVCZuNxiVg2V2cZ"
+uri = "file://artifacts/future-jaano/public/assets/hero-temple.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "rYfS11m-qkdHGrQFOoeir"
+uri = "file://artifacts/future-jaano/public/assets/deity-ganesh.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "9L5lB-s_VdHKF_-JgeI0L"
+uri = "file://artifacts/future-jaano/public/assets/deity-shiva.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Xr4gG62IgTgkL11m2IUO-"
+uri = "file://artifacts/future-jaano/public/assets/deity-lakshmi.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "gayrNVDPwlBKgtgLMguJP"
+uri = "file://artifacts/future-jaano/public/assets/deity-hanuman.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "9HuLqABehU7T1v6CXVgR-"
+uri = "file://artifacts/future-jaano/public/assets/feature-kundli.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "dnXNOotT-w6LfEb1xBkb7"
+uri = "file://artifacts/future-jaano/public/assets/feature-palm.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Gk4UHJLjH5Kga4e-1VvWw"
+uri = "file://artifacts/future-jaano/public/assets/feature-vastu.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "fM5xllfd9-y-_Qs8OErjc"
+uri = "file://artifacts/future-jaano/public/assets/feature-yantra.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "cBRo7_k7m_e6Z5BsMEacF"
+uri = "file://artifacts/future-jaano/public/assets/feature-yoga.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "dcW5abGf7IHoaxvLCRYTc"
+uri = "file://artifacts/future-jaano/public/assets/deity-durga.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "DgasJCGj7n-7Isij8T8bq"
+uri = "file://artifacts/future-jaano/public/assets/deity-krishna.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "K0t_568breu3fs0CEplhx"
+uri = "file://artifacts/future-jaano/public/assets/rashi-wheel.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "JELr42loklqohebw2PE4P"
+uri = "file://artifacts/future-jaano/public/assets/temple-bell.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "kDVVg1FuW7a_FAt6SwnGA"
+uri = "file://artifacts/future-jaano/public/assets/diya-lamp.png"
+type = "image"
+title = "generated_image"

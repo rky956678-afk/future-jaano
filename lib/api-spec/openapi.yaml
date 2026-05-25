@@ -1,0 +1,1723 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Future Jaano - AI-powered spiritual guidance platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: horoscope
+    description: Daily horoscope operations
+  - name: kundli
+    description: Birth chart / Kundli operations
+  - name: problem-solver
+    description: AI-powered problem solving
+  - name: vastu
+    description: Vastu Shastra analysis
+  - name: palm-reading
+    description: Palm reading analysis
+  - name: face-reading
+    description: Face reading analysis
+  - name: numerology
+    description: Numerology reports
+  - name: yoga
+    description: Yoga and meditation suggestions
+  - name: blog
+    description: Blog and content management
+  - name: subscription
+    description: Premium subscription management
+  - name: payment
+    description: Payment operations
+  - name: admin
+    description: Admin dashboard operations
+  - name: user
+    description: User profile operations
+  - name: notification
+    description: Push notifications
+  - name: panchang
+    description: Daily Panchang
+  - name: gochar
+    description: Planetary transits / Gochar
+  - name: kundli-milan
+    description: Kundli compatibility matching
+  - name: dasha
+    description: Vimshottari Dasha calculator
+  - name: muhurat
+    description: Muhurat / auspicious timing
+  - name: ashtakavarga
+    description: Ashtakavarga planetary strength
+paths:
+  # PANCHANG
+  /panchang:
+    get:
+      operationId: getPanchang
+      tags: [panchang]
+      summary: Get today's Panchang
+      parameters:
+        - in: query
+          name: date
+          schema: { type: string }
+          description: Date in YYYY-MM-DD format (defaults to today)
+      responses:
+        "200":
+          description: Panchang data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PanchangData" }
+
+  # GOCHAR
+  /gochar:
+    get:
+      operationId: getGochar
+      tags: [gochar]
+      summary: Get today's planetary positions (Gochar)
+      parameters:
+        - in: query
+          name: language
+          schema: { type: string }
+      responses:
+        "200":
+          description: Gochar data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GocharData" }
+
+  # KUNDLI MILAN
+  /kundli-milan:
+    post:
+      operationId: createKundliMilan
+      tags: [kundli-milan]
+      summary: Match two Kundlis for compatibility
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KundliMilanRequest" }
+      responses:
+        "201":
+          description: Kundli Milan report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KundliMilanReport" }
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+  # DASHA
+  /dasha:
+    post:
+      operationId: createDashaReport
+      tags: [dasha]
+      summary: Calculate Vimshottari Dasha
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DashaRequest" }
+      responses:
+        "201":
+          description: Dasha report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashaReport" }
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+  # MUHURAT
+  /muhurat:
+    post:
+      operationId: createMuhurat
+      tags: [muhurat]
+      summary: Calculate auspicious Muhurat
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MuhuratRequest" }
+      responses:
+        "201":
+          description: Muhurat report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MuhuratReport" }
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+  # ASHTAKAVARGA
+  /ashtakavarga:
+    post:
+      operationId: createAshtakavarga
+      tags: [ashtakavarga]
+      summary: Generate Ashtakavarga chart
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AshtakavargaRequest" }
+      responses:
+        "201":
+          description: Ashtakavarga report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AshtakavargaReport" }
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # USER PROFILE
+  /users/me:
+    get:
+      operationId: getMyProfile
+      tags: [user]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      operationId: updateMyProfile
+      tags: [user]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/me/dashboard:
+    get:
+      operationId: getUserDashboard
+      tags: [user]
+      summary: Get personalized dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /users/me/readings:
+    get:
+      operationId: getMyReadings
+      tags: [user]
+      summary: Get user's recent readings and reports
+      responses:
+        "200":
+          description: List of readings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReadingRecord"
+
+  # HOROSCOPE
+  /horoscope/daily:
+    get:
+      operationId: getDailyHoroscope
+      tags: [horoscope]
+      summary: Get daily horoscope for all zodiac signs
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+          description: Date in YYYY-MM-DD format (defaults to today)
+        - name: lang
+          in: query
+          schema:
+            type: string
+            enum: [en, hi]
+          description: Language (en or hi)
+      responses:
+        "200":
+          description: Daily horoscopes for all signs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HoroscopeEntry"
+
+  /horoscope/daily/{sign}:
+    get:
+      operationId: getDailyHoroscopeBySign
+      tags: [horoscope]
+      summary: Get daily horoscope for a specific zodiac sign
+      parameters:
+        - name: sign
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily horoscope for the sign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HoroscopeEntry"
+
+  /horoscope/weekly/{sign}:
+    get:
+      operationId: getWeeklyHoroscope
+      tags: [horoscope]
+      summary: Get weekly horoscope for a zodiac sign
+      parameters:
+        - name: sign
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Weekly horoscope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HoroscopeEntry"
+
+  # KUNDLI
+  /kundli:
+    post:
+      operationId: createKundli
+      tags: [kundli]
+      summary: Generate Kundli (birth chart) analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KundliInput"
+      responses:
+        "201":
+          description: Generated Kundli
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KundliReport"
+
+  /kundli/{id}:
+    get:
+      operationId: getKundli
+      tags: [kundli]
+      summary: Get a previously generated Kundli
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Kundli report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KundliReport"
+
+  /kundli/my:
+    get:
+      operationId: getMyKundlis
+      tags: [kundli]
+      summary: Get all Kundlis for the current user
+      responses:
+        "200":
+          description: List of Kundli reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KundliReport"
+
+  # PROBLEM SOLVER
+  /problems:
+    post:
+      operationId: submitProblem
+      tags: [problem-solver]
+      summary: Submit a problem for AI-powered remedy suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProblemInput"
+      responses:
+        "201":
+          description: Problem submitted with AI remedies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemSolution"
+
+  /problems/{id}:
+    get:
+      operationId: getProblemSolution
+      tags: [problem-solver]
+      summary: Get a problem solution by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Problem solution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemSolution"
+
+  /problems/my:
+    get:
+      operationId: getMyProblems
+      tags: [problem-solver]
+      summary: Get current user's problem history
+      responses:
+        "200":
+          description: List of problem solutions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProblemSolution"
+
+  # VASTU ANALYSIS
+  /vastu/analyze:
+    post:
+      operationId: analyzeVastu
+      tags: [vastu]
+      summary: Analyze a photo for Vastu Shastra insights
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VastuInput"
+      responses:
+        "201":
+          description: Vastu analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VastuReport"
+
+  /vastu/{id}:
+    get:
+      operationId: getVastuReport
+      tags: [vastu]
+      summary: Get a Vastu analysis report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vastu report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VastuReport"
+
+  # PALM READING
+  /palm/analyze:
+    post:
+      operationId: analyzePalm
+      tags: [palm-reading]
+      summary: Analyze a palm image for reading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageAnalysisInput"
+      responses:
+        "201":
+          description: Palm reading result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PalmReport"
+
+  /palm/{id}:
+    get:
+      operationId: getPalmReport
+      tags: [palm-reading]
+      summary: Get a palm reading report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Palm reading report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PalmReport"
+
+  # FACE READING
+  /face/analyze:
+    post:
+      operationId: analyzeFace
+      tags: [face-reading]
+      summary: Analyze a face image for reading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageAnalysisInput"
+      responses:
+        "201":
+          description: Face reading result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaceReport"
+
+  /face/{id}:
+    get:
+      operationId: getFaceReport
+      tags: [face-reading]
+      summary: Get a face reading report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Face reading report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaceReport"
+
+  # NUMEROLOGY
+  /numerology:
+    post:
+      operationId: createNumerologyReport
+      tags: [numerology]
+      summary: Generate a numerology report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NumerologyInput"
+      responses:
+        "201":
+          description: Numerology report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumerologyReport"
+
+  /numerology/{id}:
+    get:
+      operationId: getNumerologyReport
+      tags: [numerology]
+      summary: Get a numerology report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Numerology report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumerologyReport"
+
+  # YOGA & MEDITATION
+  /yoga/suggestions:
+    post:
+      operationId: getYogaSuggestions
+      tags: [yoga]
+      summary: Get personalized yoga and meditation suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YogaInput"
+      responses:
+        "201":
+          description: Yoga suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YogaPlan"
+
+  /yoga/plans/my:
+    get:
+      operationId: getMyYogaPlans
+      tags: [yoga]
+      summary: Get user's yoga plans
+      responses:
+        "200":
+          description: List of yoga plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/YogaPlan"
+
+  # BLOG
+  /blog/posts:
+    get:
+      operationId: getBlogPosts
+      tags: [blog]
+      summary: Get all published blog posts
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: lang
+          in: query
+          schema:
+            type: string
+            enum: [en, hi]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPostList"
+    post:
+      operationId: createBlogPost
+      tags: [blog]
+      summary: Create a blog post (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "201":
+          description: Created blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/posts/trending:
+    get:
+      operationId: getTrendingBlogPosts
+      tags: [blog]
+      summary: Get trending blog posts
+      responses:
+        "200":
+          description: Trending posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+
+  /blog/posts/{slug}:
+    get:
+      operationId: getBlogPostBySlug
+      tags: [blog]
+      summary: Get a blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    patch:
+      operationId: updateBlogPost
+      tags: [blog]
+      summary: Update a blog post (admin only)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostUpdate"
+      responses:
+        "200":
+          description: Updated blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    delete:
+      operationId: deleteBlogPost
+      tags: [blog]
+      summary: Delete a blog post (admin only)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # SUBSCRIPTION
+  /subscriptions/plans:
+    get:
+      operationId: getSubscriptionPlans
+      tags: [subscription]
+      summary: Get all subscription plans
+      responses:
+        "200":
+          description: Subscription plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionPlan"
+
+  /subscriptions/my:
+    get:
+      operationId: getMySubscription
+      tags: [subscription]
+      summary: Get current user's subscription
+      responses:
+        "200":
+          description: Current subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSubscription"
+
+  # PAYMENT
+  /payments/initiate:
+    post:
+      operationId: initiatePayment
+      tags: [payment]
+      summary: Initiate a Razorpay payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Payment order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentOrder"
+
+  /payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payment]
+      summary: Verify Razorpay payment signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentVerification"
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResult"
+
+  /payments/history:
+    get:
+      operationId: getPaymentHistory
+      tags: [payment]
+      summary: Get current user's payment history
+      responses:
+        "200":
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentRecord"
+
+  # ADMIN DASHBOARD
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform-wide statistics
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      tags: [admin]
+      summary: Get all users (admin only)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserList"
+
+  /admin/readings/recent:
+    get:
+      operationId: getRecentReadings
+      tags: [admin]
+      summary: Get recent readings across all users
+      responses:
+        "200":
+          description: Recent readings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReadingRecord"
+
+  /admin/revenue:
+    get:
+      operationId: getRevenueStats
+      tags: [admin]
+      summary: Get revenue statistics
+      responses:
+        "200":
+          description: Revenue stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueStats"
+
+  # NOTIFICATIONS
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notification]
+      summary: Get notifications for current user
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notification]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationReadUpdate"
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  # WEB PUSH SUBSCRIPTIONS
+  /push/vapid-public-key:
+    get:
+      operationId: getVapidPublicKey
+      tags: [notification]
+      summary: Get server's VAPID public key for push subscription
+      responses:
+        "200":
+          description: VAPID public key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VapidKey"
+
+  /push/subscribe:
+    post:
+      operationId: subscribePush
+      tags: [notification]
+      summary: Register a web push subscription for the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscribeRequest"
+      responses:
+        "200":
+          description: Subscription saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionStatus"
+
+  /push/unsubscribe:
+    post:
+      operationId: unsubscribePush
+      tags: [notification]
+      summary: Remove a web push subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushUnsubscribeRequest"
+      responses:
+        "200":
+          description: Subscription removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionStatus"
+
+  /push/preferences:
+    patch:
+      operationId: updatePushPreferences
+      tags: [notification]
+      summary: Update notification time / language preferences for an existing subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushPreferencesUpdate"
+      responses:
+        "200":
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionStatus"
+
+  /push/test:
+    post:
+      operationId: sendTestPush
+      tags: [notification]
+      summary: Send a test push to all active subscriptions of the current user
+      responses:
+        "200":
+          description: Test push dispatched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionStatus"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    # USER
+    UserProfile:
+      type: object
+      required: [id, clerkId, email, name, createdAt]
+      properties:
+        id: { type: integer }
+        clerkId: { type: string }
+        email: { type: string }
+        name: { type: string }
+        phone: { type: ["string", "null"] }
+        dateOfBirth: { type: ["string", "null"] }
+        timeOfBirth: { type: ["string", "null"] }
+        placeOfBirth: { type: ["string", "null"] }
+        gender: { type: ["string", "null"] }
+        language: { type: string }
+        isPremium: { type: boolean }
+        avatarUrl: { type: ["string", "null"] }
+        zodiacSign: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        dateOfBirth: { type: string }
+        timeOfBirth: { type: string }
+        placeOfBirth: { type: string }
+        gender: { type: string }
+        language: { type: string }
+        zodiacSign: { type: string }
+
+    DashboardSummary:
+      type: object
+      required: [totalReadings, todayHoroscope, activeSubscription, recentActivity, zodiacSign]
+      properties:
+        totalReadings: { type: integer }
+        todayHoroscope: { $ref: "#/components/schemas/HoroscopeEntry" }
+        activeSubscription: { type: ["string", "null"] }
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingRecord"
+        zodiacSign: { type: ["string", "null"] }
+        unreadNotifications: { type: integer }
+        memberSince: { type: string }
+
+    ReadingRecord:
+      type: object
+      required: [id, type, summary, createdAt]
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [kundli, horoscope, vastu, palm, face, numerology, yoga, problem] }
+        summary: { type: string }
+        createdAt: { type: string }
+        userId: { type: integer }
+        isPremium: { type: boolean }
+
+    # HOROSCOPE
+    HoroscopeEntry:
+      type: object
+      required: [sign, date, prediction, luckyColor, luckyNumber, compatibility]
+      properties:
+        sign: { type: string }
+        signHindi: { type: ["string", "null"] }
+        date: { type: string }
+        prediction: { type: string }
+        health: { type: string }
+        career: { type: string }
+        love: { type: string }
+        finance: { type: string }
+        luckyColor: { type: string }
+        luckyNumber: { type: integer }
+        luckyGem: { type: ["string", "null"] }
+        compatibility: { type: string }
+        rating: { type: integer }
+        emoji: { type: string }
+
+    # KUNDLI
+    KundliInput:
+      type: object
+      required: [name, dateOfBirth, timeOfBirth, placeOfBirth]
+      properties:
+        name: { type: string }
+        dateOfBirth: { type: string }
+        timeOfBirth: { type: string }
+        placeOfBirth: { type: string }
+        gender: { type: string }
+        language: { type: string }
+
+    KundliReport:
+      type: object
+      required: [id, name, dateOfBirth, timeOfBirth, placeOfBirth, sunSign, moonSign, ascendant, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        dateOfBirth: { type: string }
+        timeOfBirth: { type: string }
+        placeOfBirth: { type: string }
+        sunSign: { type: string }
+        moonSign: { type: string }
+        ascendant: { type: string }
+        analysis: { type: string }
+        planetaryPositions: { type: ["string", "null"] }
+        doshas: { type: ["string", "null"] }
+        remedies: { type: ["string", "null"] }
+        manglikStatus: { type: ["string", "null"] }
+        luckyStone: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # PROBLEM SOLVER
+    ProblemInput:
+      type: object
+      required: [description, category]
+      properties:
+        description: { type: string }
+        category: { type: string, enum: [health, career, marriage, business, education, finance, relationship, other] }
+        language: { type: string }
+
+    ProblemSolution:
+      type: object
+      required: [id, description, category, remedies, createdAt]
+      properties:
+        id: { type: integer }
+        description: { type: string }
+        category: { type: string }
+        remedies: { type: string }
+        lalKitabRemedy: { type: ["string", "null"] }
+        atharvavedaRemedy: { type: ["string", "null"] }
+        yogPradeepamRemedy: { type: ["string", "null"] }
+        vastuRemedy: { type: ["string", "null"] }
+        mantra: { type: ["string", "null"] }
+        gemstone: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # VASTU
+    VastuInput:
+      type: object
+      required: [imageBase64, roomType]
+      properties:
+        imageBase64: { type: string }
+        roomType: { type: string, enum: [bedroom, kitchen, living_room, bathroom, office, entrance, garden, full_house] }
+        language: { type: string }
+
+    VastuDosh:
+      type: object
+      required: [name, severity, description, upaay]
+      properties:
+        name: { type: string }
+        severity: { type: string, enum: [high, medium, low] }
+        description: { type: string }
+        upaay: { type: string }
+
+    VastuReport:
+      type: object
+      required: [id, roomType, overallScore, findings, remedies, createdAt]
+      properties:
+        id: { type: integer }
+        roomType: { type: string }
+        overallScore: { type: integer }
+        findings: { type: string }
+        remedies: { type: string }
+        doshas:
+          type: array
+          items:
+            $ref: "#/components/schemas/VastuDosh"
+        positiveAspects: { type: ["string", "null"] }
+        negativeAspects: { type: ["string", "null"] }
+        colorRecommendations: { type: ["string", "null"] }
+        directionAnalysis: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # IMAGE ANALYSIS (shared for palm & face)
+    ImageAnalysisInput:
+      type: object
+      required: [imageBase64]
+      properties:
+        imageBase64: { type: string }
+        language: { type: string }
+
+    # PALM READING
+    PalmReport:
+      type: object
+      required: [id, lifeLine, heartLine, headLine, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        lifeLine: { type: string }
+        heartLine: { type: string }
+        headLine: { type: string }
+        fateLine: { type: ["string", "null"] }
+        sunLine: { type: ["string", "null"] }
+        analysis: { type: string }
+        longevityPrediction: { type: ["string", "null"] }
+        careerPrediction: { type: ["string", "null"] }
+        lovePrediction: { type: ["string", "null"] }
+        fortunePrediction: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # FACE READING
+    FaceReport:
+      type: object
+      required: [id, faceShape, eyeAnalysis, noseAnalysis, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        faceShape: { type: string }
+        eyeAnalysis: { type: string }
+        noseAnalysis: { type: string }
+        lipsAnalysis: { type: ["string", "null"] }
+        foreheadAnalysis: { type: ["string", "null"] }
+        analysis: { type: string }
+        personalityTraits: { type: ["string", "null"] }
+        fortunePrediction: { type: ["string", "null"] }
+        healthIndicators: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # NUMEROLOGY
+    NumerologyInput:
+      type: object
+      required: [fullName, dateOfBirth]
+      properties:
+        fullName: { type: string }
+        dateOfBirth: { type: string }
+        language: { type: string }
+
+    NumerologyReport:
+      type: object
+      required: [id, fullName, dateOfBirth, lifePathNumber, destinyNumber, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        fullName: { type: string }
+        dateOfBirth: { type: string }
+        lifePathNumber: { type: integer }
+        destinyNumber: { type: integer }
+        soulUrgeNumber: { type: ["integer", "null"] }
+        personalityNumber: { type: ["integer", "null"] }
+        birthdayNumber: { type: ["integer", "null"] }
+        analysis: { type: string }
+        strengths: { type: ["string", "null"] }
+        challenges: { type: ["string", "null"] }
+        luckyYears: { type: ["string", "null"] }
+        compatibleNumbers: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # YOGA
+    YogaInput:
+      type: object
+      required: [healthGoals, fitnessLevel]
+      properties:
+        healthGoals: { type: string }
+        fitnessLevel: { type: string, enum: [beginner, intermediate, advanced] }
+        healthConditions: { type: string }
+        preferredDuration: { type: integer }
+        language: { type: string }
+
+    YogaPlan:
+      type: object
+      required: [id, healthGoals, fitnessLevel, morningRoutine, eveningRoutine, meditation, createdAt]
+      properties:
+        id: { type: integer }
+        healthGoals: { type: string }
+        fitnessLevel: { type: string }
+        morningRoutine: { type: string }
+        eveningRoutine: { type: string }
+        meditation: { type: string }
+        breathingExercises: { type: ["string", "null"] }
+        dietaryAdvice: { type: ["string", "null"] }
+        weeklySchedule: { type: ["string", "null"] }
+        language: { type: string }
+        createdAt: { type: string }
+
+    # BLOG
+    BlogPost:
+      type: object
+      required: [id, title, slug, excerpt, content, category, author, publishedAt, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        excerpt: { type: string }
+        content: { type: string }
+        category: { type: string }
+        author: { type: string }
+        imageUrl: { type: ["string", "null"] }
+        tags: { type: ["string", "null"] }
+        viewCount: { type: integer }
+        language: { type: string }
+        isPublished: { type: boolean }
+        publishedAt: { type: string }
+        createdAt: { type: string }
+
+    BlogPostList:
+      type: object
+      required: [posts, total, page, limit]
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+
+    BlogPostInput:
+      type: object
+      required: [title, slug, excerpt, content, category, author]
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        excerpt: { type: string }
+        content: { type: string }
+        category: { type: string }
+        author: { type: string }
+        imageUrl: { type: string }
+        tags: { type: string }
+        language: { type: string }
+        isPublished: { type: boolean }
+
+    BlogPostUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        excerpt: { type: string }
+        content: { type: string }
+        category: { type: string }
+        imageUrl: { type: string }
+        tags: { type: string }
+        isPublished: { type: boolean }
+
+    # SUBSCRIPTION
+    SubscriptionPlan:
+      type: object
+      required: [id, name, price, duration, features]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        nameHindi: { type: ["string", "null"] }
+        price: { type: integer }
+        duration: { type: integer }
+        features: { type: string }
+        isPopular: { type: boolean }
+        razorpayPlanId: { type: ["string", "null"] }
+
+    UserSubscription:
+      type: object
+      required: [id, planName, status, startDate, endDate]
+      properties:
+        id: { type: integer }
+        planName: { type: string }
+        status: { type: string, enum: [active, expired, cancelled] }
+        startDate: { type: string }
+        endDate: { type: string }
+        autoRenew: { type: boolean }
+
+    # PAYMENT
+    PaymentInput:
+      type: object
+      required: [planId, amount]
+      properties:
+        planId: { type: integer }
+        amount: { type: integer }
+        currency: { type: string }
+
+    PaymentOrder:
+      type: object
+      required: [orderId, amount, currency, keyId]
+      properties:
+        orderId: { type: string }
+        amount: { type: integer }
+        currency: { type: string }
+        keyId: { type: string }
+        notes: { type: ["string", "null"] }
+
+    PaymentVerification:
+      type: object
+      required: [razorpayOrderId, razorpayPaymentId, razorpaySignature, planId]
+      properties:
+        razorpayOrderId: { type: string }
+        razorpayPaymentId: { type: string }
+        razorpaySignature: { type: string }
+        planId: { type: integer }
+
+    PaymentResult:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        subscriptionId: { type: ["integer", "null"] }
+
+    PaymentRecord:
+      type: object
+      required: [id, amount, status, planName, createdAt]
+      properties:
+        id: { type: integer }
+        amount: { type: integer }
+        currency: { type: string }
+        status: { type: string }
+        planName: { type: string }
+        razorpayOrderId: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    # ADMIN
+    AdminStats:
+      type: object
+      required: [totalUsers, premiumUsers, totalReadings, totalRevenue, todaySignups, activeSessions]
+      properties:
+        totalUsers: { type: integer }
+        premiumUsers: { type: integer }
+        totalReadings: { type: integer }
+        totalRevenue: { type: integer }
+        todaySignups: { type: integer }
+        activeSessions: { type: integer }
+        readingsByType:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingTypeStat"
+        recentSignups:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfile"
+
+    ReadingTypeStat:
+      type: object
+      required: [type, count]
+      properties:
+        type: { type: string }
+        count: { type: integer }
+
+    AdminUserList:
+      type: object
+      required: [users, total, page, limit]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfile"
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+
+    RevenueStats:
+      type: object
+      required: [totalRevenue, monthlyRevenue, weeklyRevenue]
+      properties:
+        totalRevenue: { type: integer }
+        monthlyRevenue: { type: integer }
+        weeklyRevenue: { type: integer }
+        revenueByPlan:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenuePlanStat"
+
+    RevenuePlanStat:
+      type: object
+      required: [planName, revenue, subscribers]
+      properties:
+        planName: { type: string }
+        revenue: { type: integer }
+        subscribers: { type: integer }
+
+    # NOTIFICATION
+    Notification:
+      type: object
+      required: [id, title, message, type, isRead, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        message: { type: string }
+        type: { type: string, enum: [horoscope, remedy, promotion, system] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    NotificationReadUpdate:
+      type: object
+      required: [isRead]
+      properties:
+        isRead: { type: boolean }
+
+    VapidKey:
+      type: object
+      required: [publicKey]
+      properties:
+        publicKey: { type: string }
+
+    PushSubscribeRequest:
+      type: object
+      required: [endpoint, keys]
+      properties:
+        endpoint: { type: string }
+        keys:
+          type: object
+          required: [p256dh, auth]
+          properties:
+            p256dh: { type: string }
+            auth: { type: string }
+        hour: { type: integer, minimum: 0, maximum: 23 }
+        minute: { type: integer, minimum: 0, maximum: 59 }
+        language: { type: string }
+        userAgent: { type: string }
+
+    PushUnsubscribeRequest:
+      type: object
+      required: [endpoint]
+      properties:
+        endpoint: { type: string }
+
+    PushPreferencesUpdate:
+      type: object
+      required: [endpoint]
+      properties:
+        endpoint: { type: string }
+        hour: { type: integer, minimum: 0, maximum: 23 }
+        minute: { type: integer, minimum: 0, maximum: 59 }
+        language: { type: string }
+        enabled: { type: boolean }
+
+    PushSubscriptionStatus:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+        count: { type: integer }
+        message: { type: string }
+
+    # PANCHANG
+    PanchangData:
+      type: object
+      required: [date, tithi, nakshatra, yoga, karan, vaara, sunrise, sunset, rahuKaal, yamaghanta, gulikaKaal, abhijitMuhurat, moonRashi, sunRashi]
+      properties:
+        date: { type: string }
+        tithi: { type: string }
+        nakshatra: { type: string }
+        yoga: { type: string }
+        karan: { type: string }
+        vaara: { type: string }
+        sunrise: { type: string }
+        sunset: { type: string }
+        rahuKaal: { type: string }
+        yamaghanta: { type: string }
+        gulikaKaal: { type: string }
+        abhijitMuhurat: { type: string }
+        moonRashi: { type: string }
+        sunRashi: { type: string }
+        festivals: { type: string }
+
+    # GOCHAR
+    PlanetPosition:
+      type: object
+      required: [planet, rashi, degree, isRetrograde, effect]
+      properties:
+        planet: { type: string }
+        planetHi: { type: string }
+        rashi: { type: string }
+        rashiHi: { type: string }
+        degree: { type: string }
+        isRetrograde: { type: boolean }
+        effect: { type: string }
+    GocharData:
+      type: object
+      required: [date, planets, generalEffect]
+      properties:
+        date: { type: string }
+        planets: { type: array, items: { $ref: "#/components/schemas/PlanetPosition" } }
+        generalEffect: { type: string }
+
+    # KUNDLI MILAN
+    KundliMilanRequest:
+      type: object
+      required: [person1Name, person1Dob, person1Tob, person1Pob, person2Name, person2Dob, person2Tob, person2Pob]
+      properties:
+        person1Name: { type: string }
+        person1Dob: { type: string }
+        person1Tob: { type: string }
+        person1Pob: { type: string }
+        person2Name: { type: string }
+        person2Dob: { type: string }
+        person2Tob: { type: string }
+        person2Pob: { type: string }
+        language: { type: string }
+    KundliMilanReport:
+      type: object
+      required: [totalScore, maxScore, compatibility, varna, vashya, tara, yoni, grihaMaitri, gana, bhakoota, nadi, analysis, strengths, challenges, recommendation]
+      properties:
+        totalScore: { type: number }
+        maxScore: { type: number }
+        compatibility: { type: string }
+        varna: { type: number }
+        vashya: { type: number }
+        tara: { type: number }
+        yoni: { type: number }
+        grihaMaitri: { type: number }
+        gana: { type: number }
+        bhakoota: { type: number }
+        nadi: { type: number }
+        analysis: { type: string }
+        strengths: { type: string }
+        challenges: { type: string }
+        recommendation: { type: string }
+
+    # DASHA
+    DashaPeriod:
+      type: object
+      required: [planet, planetHi, startDate, endDate, years, interpretation]
+      properties:
+        planet: { type: string }
+        planetHi: { type: string }
+        startDate: { type: string }
+        endDate: { type: string }
+        years: { type: number }
+        interpretation: { type: string }
+    DashaRequest:
+      type: object
+      required: [dateOfBirth, timeOfBirth, placeOfBirth]
+      properties:
+        dateOfBirth: { type: string }
+        timeOfBirth: { type: string }
+        placeOfBirth: { type: string }
+        language: { type: string }
+    DashaReport:
+      type: object
+      required: [currentDasha, currentAntardasha, dashaBalance, periods, currentPeriodInterpretation]
+      properties:
+        currentDasha: { type: string }
+        currentAntardasha: { type: string }
+        dashaBalance: { type: string }
+        periods: { type: array, items: { $ref: "#/components/schemas/DashaPeriod" } }
+        currentPeriodInterpretation: { type: string }
+
+    # MUHURAT
+    MuhuratRequest:
+      type: object
+      required: [purpose, startDate, endDate]
+      properties:
+        purpose: { type: string, enum: [vivah, grih-pravesh, vyapar, yatra, naam-karan, mundan, other] }
+        startDate: { type: string }
+        endDate: { type: string }
+        location: { type: string }
+        language: { type: string }
+    MuhuratTime:
+      type: object
+      required: [date, timeRange, tithi, nakshatra, yoga, quality, reason]
+      properties:
+        date: { type: string }
+        timeRange: { type: string }
+        tithi: { type: string }
+        nakshatra: { type: string }
+        yoga: { type: string }
+        quality: { type: string, enum: [excellent, good, average] }
+        reason: { type: string }
+    MuhuratReport:
+      type: object
+      required: [purpose, muhurats, generalGuidance]
+      properties:
+        purpose: { type: string }
+        muhurats: { type: array, items: { $ref: "#/components/schemas/MuhuratTime" } }
+        generalGuidance: { type: string }
+
+    # ASHTAKAVARGA
+    AshtakavargaRequest:
+      type: object
+      required: [dateOfBirth, timeOfBirth, placeOfBirth]
+      properties:
+        dateOfBirth: { type: string }
+        timeOfBirth: { type: string }
+        placeOfBirth: { type: string }
+        language: { type: string }
+    AshtakavargaRow:
+      type: object
+      required: [planet, planetHi, aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces, total]
+      properties:
+        planet: { type: string }
+        planetHi: { type: string }
+        aries: { type: integer }
+        taurus: { type: integer }
+        gemini: { type: integer }
+        cancer: { type: integer }
+        leo: { type: integer }
+        virgo: { type: integer }
+        libra: { type: integer }
+        scorpio: { type: integer }
+        sagittarius: { type: integer }
+        capricorn: { type: integer }
+        aquarius: { type: integer }
+        pisces: { type: integer }
+        total: { type: integer }
+    AshtakavargaReport:
+      type: object
+      required: [rows, sarvashtakavarga, strongHouses, weakHouses, analysis]
+      properties:
+        rows: { type: array, items: { $ref: "#/components/schemas/AshtakavargaRow" } }
+        sarvashtakavarga: { type: array, items: { type: integer } }
+        strongHouses: { type: string }
+        weakHouses: { type: string }
+        analysis: { type: string }

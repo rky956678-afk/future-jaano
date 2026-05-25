@@ -1,0 +1,70 @@
+Redesign the "Sign in to Continue" page to make it look highly trustworthy, premium, and psychologically reassuring so users feel that Future Jaano provides accurate and authentic guidance.
+
+Design Requirements:
+
+1. Premium Visual Style
+- Deep navy blue background (#050B2C)
+- Gold accents (#F5B52E)
+- Soft glowing effects around the main card
+- Elegant serif headings (Playfair Display)
+- Modern sans-serif body text (Inter)
+
+2. Trust-Building Hero Card
+- Add a gold shield icon with a checkmark
+- Large heading:
+  "Trusted AI Guidance for Your Future"
+- Subheading:
+  "Join thousands of users receiving accurate insights based on Lal Kitab, Atharvaved, Vastu Shastra, and Yog Pradeepam."
+- Add trust badges:
+  ✓ AI-Powered Analysis
+  ✓ Ancient Vedic Wisdom
+  ✓ Secure & Private
+  ✓ Personalized Remedies
+
+3. Social Proof Section
+- Show:
+  "50,000+ Accurate Predictions Delivered"
+  "4.9★ User Rating"
+  "Trusted Across India and Worldwide"
+
+4. Premium CTA Button
+- Large gold gradient button
+- Text:
+  "Sign In / Create Free Account"
+- Hover animation with glow and slight scale effect
+
+5. Accuracy Assurance Box
+- Small highlighted box below CTA:
+  "Our AI combines traditional Vedic knowledge with advanced intelligence to provide deeply researched and personalized guidance."
+
+6. Testimonials Carousel
+Display 3 rotating testimonials:
+- "The career guidance was surprisingly accurate." – Rahul, Delhi
+- "Vastu remedies transformed my home energy." – Priya, Mumbai
+- "Best AI astrology platform I have used." – Amit, Bengaluru
+
+7. Security Message
+At the bottom:
+🔒 Your information is fully encrypted and kept confidential.
+
+8. Optional Background Elements
+- Subtle zodiac symbols
+- Faint star particles
+- Constellation patterns
+
+9. Animation
+- Fade-in card animation
+- Floating particles
+- Smooth button hover effects
+- Auto-rotating testimonials
+
+10. Conversion-Oriented Psychology
+The design should make users feel:
+- This platform is credible
+- Guidance is accurate
+- Ancient wisdom is authentic
+- Their data is safe
+- Signing up is worthwhile
+
+Final Goal:
+Create a world-class premium authentication landing section that inspires trust, authority, accuracy, and high conversion rates, comparable to top-tier fintech and wellness platforms.

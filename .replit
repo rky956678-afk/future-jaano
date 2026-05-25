@@ -1,0 +1,47 @@
+modules = ["nodejs-24", "postgresql-16", "python-3.11"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3001
+
+[[ports]]
+localPort = 21903
+externalPort = 3000
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BFiZTUxSPHnOqAegPBR8-CquNBs4xsoI5ZAW7IpMnHZJ8DGKP666HMLpxU9GsQqLLXcKRQGwYasv1w1cGUhQ5hQ"
+VAPID_PRIVATE_KEY = "TK02n-J7pnX-XI7xrkcLo_kmJ4kJkzlpJJoFHCM4VV4"
+VAPID_SUBJECT = "mailto:admin@futurejaano.com"
+VITE_VAPID_PUBLIC_KEY = "BFiZTUxSPHnOqAegPBR8-CquNBs4xsoI5ZAW7IpMnHZJ8DGKP666HMLpxU9GsQqLLXcKRQGwYasv1w1cGUhQ5hQ"

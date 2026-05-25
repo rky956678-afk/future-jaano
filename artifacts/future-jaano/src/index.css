@@ -1,0 +1,368 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  /* Future Jaano Theme */
+  --background: 231 63% 11%; /* #0a0f2c */
+  --foreground: 0 0% 100%;
+
+  --card: 230 55% 15%; /* #11183c */
+  --card-foreground: 0 0% 100%;
+  --card-border: 231 63% 18%;
+
+  --popover: 231 63% 11%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 231 63% 20%;
+
+  --primary: 38 90% 55%; /* #f5a623 Saffron/Gold */
+  --primary-foreground: 231 63% 11%; /* Dark text on gold */
+  
+  --secondary: 231 63% 20%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 231 63% 20%;
+  --muted-foreground: 231 20% 70%;
+
+  --accent: 38 90% 55%;
+  --accent-foreground: 231 63% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 231 63% 20%;
+  --input: 231 63% 25%;
+  --ring: 38 90% 55%;
+
+  --chart-1: 38 90% 55%;
+  --chart-2: 231 63% 40%;
+  --chart-3: 160 60% 45%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
+  --sidebar: 231 63% 11%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-border: 231 63% 20%;
+  --sidebar-primary: 38 90% 55%;
+  --sidebar-primary-foreground: 231 63% 11%;
+  --sidebar-accent: 231 63% 20%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 38 90% 55%;
+
+  --radius: 0.75rem;
+
+  --app-font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --app-font-serif: 'Playfair Display', Georgia, serif;
+  --app-font-mono: 'Space Mono', monospace;
+}
+
+.dark {
+  /* Same as light mode since it's a dark theme by default */
+  --background: 231 63% 11%;
+  --foreground: 0 0% 100%;
+
+  --card: 230 55% 15%;
+  --card-foreground: 0 0% 100%;
+  --card-border: 231 63% 18%;
+
+  --popover: 231 63% 11%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 231 63% 20%;
+
+  --primary: 38 90% 55%;
+  --primary-foreground: 231 63% 11%;
+  
+  --secondary: 231 63% 20%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 231 63% 20%;
+  --muted-foreground: 231 20% 70%;
+
+  --accent: 38 90% 55%;
+  --accent-foreground: 231 63% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 231 63% 20%;
+  --input: 231 63% 25%;
+  --ring: 38 90% 55%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground;
+    background-image: radial-gradient(circle at 50% 0%, rgba(245, 166, 35, 0.05) 0%, transparent 50%),
+                      url('/artifacts/future-jaano/src/assets/hero-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+}
+
+/* ── Clerk UI overrides ── */
+@layer clerk {
+
+  /* Modal backdrop — semi-transparent so page is visible behind */
+  .cl-modalBackdrop {
+    background: rgba(5, 11, 44, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+
+  /* Card / page shell — noticeably lighter navy */
+  .cl-card,
+  .cl-userProfile-root,
+  .cl-rootBox {
+    background: hsl(230, 48%, 22%) !important;
+    border: 1px solid hsl(38, 70%, 45%, 0.35) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.45), 0 0 0 1px rgba(245,181,46,0.08) !important;
+  }
+
+  /* Modal wrapper itself */
+  .cl-modal {
+    background: hsl(230, 48%, 22%) !important;
+  }
+
+  /* Left sidebar nav */
+  .cl-navbar,
+  .cl-navbarMobileMenuButton {
+    background: hsl(231, 52%, 16%) !important;
+    border-right: 1px solid hsl(231, 40%, 28%) !important;
+  }
+
+  .cl-navbarButton {
+    color: hsl(0, 0%, 85%) !important;
+    border-radius: 0.5rem !important;
+  }
+  .cl-navbarButton:hover,
+  .cl-navbarButton[data-active="true"] {
+    background: hsl(231, 45%, 28%) !important;
+    color: #fff !important;
+  }
+  .cl-navbarButtonIcon {
+    color: hsl(38, 90%, 55%) !important;
+  }
+
+  /* All heading / title text — pure white */
+  .cl-profileSectionTitle,
+  .cl-profileSectionTitleText,
+  .cl-headerTitle,
+  .cl-userPreviewMainIdentifier,
+  .cl-formFieldLabel,
+  .cl-identityPreviewEditButton,
+  .cl-formResendCodeLink {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+
+  /* Secondary text — bright enough to read */
+  .cl-bodySmallRegular,
+  .cl-userPreviewSecondaryIdentifier,
+  .cl-headerSubtitle,
+  .cl-identityPreviewText,
+  .cl-accordionTriggerButton,
+  .cl-footerActionText,
+  .cl-footerActionLink {
+    color: hsl(0, 0%, 85%) !important;
+  }
+
+  /* Footer link (Sign up / Sign in) */
+  .cl-footerActionLink {
+    color: hsl(38, 90%, 60%) !important;
+    font-weight: 600 !important;
+  }
+  .cl-footerActionLink:hover {
+    color: hsl(38, 90%, 72%) !important;
+  }
+
+  /* Form labels */
+  .cl-formFieldLabel {
+    color: hsl(0, 0%, 90%) !important;
+    font-weight: 500 !important;
+  }
+
+  /* Input fields — lighter so text pops */
+  .cl-formFieldInput,
+  .cl-selectButton,
+  .cl-input {
+    background: hsl(231, 45%, 30%) !important;
+    border: 1px solid hsl(231, 40%, 40%) !important;
+    color: #ffffff !important;
+    border-radius: 0.6rem !important;
+  }
+  .cl-formFieldInput:focus,
+  .cl-input:focus {
+    border-color: hsl(38, 90%, 55%) !important;
+    box-shadow: 0 0 0 2px rgba(245,181,46,0.25) !important;
+    outline: none !important;
+  }
+  .cl-formFieldInput::placeholder {
+    color: hsl(0, 0%, 60%) !important;
+  }
+
+  /* Primary buttons */
+  .cl-formButtonPrimary,
+  .cl-profileSectionPrimaryButton {
+    background: linear-gradient(135deg, hsl(38,90%,50%) 0%, hsl(38,90%,63%) 100%) !important;
+    color: hsl(231, 63%, 10%) !important;
+    font-weight: 700 !important;
+    border-radius: 0.6rem !important;
+    border: none !important;
+  }
+  .cl-formButtonPrimary:hover,
+  .cl-profileSectionPrimaryButton:hover {
+    background: linear-gradient(135deg, hsl(38,90%,60%) 0%, hsl(38,90%,72%) 100%) !important;
+  }
+
+  /* Secondary / ghost buttons */
+  .cl-formButtonReset,
+  .cl-secondaryButton {
+    color: hsl(0, 0%, 82%) !important;
+    border: 1px solid hsl(231, 40%, 38%) !important;
+    border-radius: 0.6rem !important;
+    background: transparent !important;
+  }
+  .cl-formButtonReset:hover,
+  .cl-secondaryButton:hover {
+    background: hsl(231, 45%, 30%) !important;
+    color: #fff !important;
+  }
+
+  /* Dividers */
+  .cl-dividerLine {
+    background: hsl(231, 40%, 32%) !important;
+  }
+  .cl-dividerText {
+    color: hsl(0, 0%, 65%) !important;
+  }
+
+  /* Badges */
+  .cl-badge {
+    background: hsl(38, 90%, 18%) !important;
+    color: hsl(38, 90%, 72%) !important;
+    border: 1px solid hsl(38, 90%, 38%) !important;
+    border-radius: 999px !important;
+  }
+
+  /* Avatar ring */
+  .cl-avatarBox {
+    box-shadow: 0 0 0 2px hsl(38, 90%, 55%), 0 0 0 4px hsl(231, 52%, 16%) !important;
+  }
+  .cl-avatarImageActionsUpload {
+    background: hsl(231, 45%, 28%) !important;
+    color: hsl(38, 90%, 55%) !important;
+    border: 1px solid hsl(231, 40%, 38%) !important;
+  }
+
+  /* Page scroll area */
+  .cl-pageScrollBox {
+    background: hsl(230, 48%, 22%) !important;
+  }
+
+  /* Alert / info boxes */
+  .cl-alert {
+    background: hsl(231, 45%, 25%) !important;
+    border: 1px solid hsl(231, 40%, 35%) !important;
+    color: hsl(0, 0%, 88%) !important;
+    border-radius: 0.75rem !important;
+  }
+
+  /* Phone / select row */
+  .cl-phoneInputBox {
+    background: hsl(231, 45%, 30%) !important;
+    border: 1px solid hsl(231, 40%, 40%) !important;
+    border-radius: 0.6rem !important;
+  }
+
+  /* Social OAuth buttons */
+  .cl-socialButtonsBlockButton {
+    background: hsl(231, 45%, 28%) !important;
+    border: 1px solid hsl(231, 40%, 38%) !important;
+    color: hsl(0, 0%, 92%) !important;
+    border-radius: 0.6rem !important;
+  }
+  .cl-socialButtonsBlockButton:hover {
+    background: hsl(231, 45%, 34%) !important;
+    border-color: hsl(38, 90%, 55%) !important;
+  }
+
+  /* Internal links */
+  .cl-identityPreviewEditButton,
+  .cl-formResendCodeLink {
+    color: hsl(38, 90%, 60%) !important;
+  }
+  .cl-identityPreviewEditButton:hover,
+  .cl-formResendCodeLink:hover {
+    color: hsl(38, 90%, 72%) !important;
+  }
+
+}
