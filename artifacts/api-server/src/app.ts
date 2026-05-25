@@ -1,13 +1,16 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 const pinoHttp = require("pino-http");
+
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
+
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
+
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -17,30 +20,37 @@ app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
-serializers: {
-  req(req: any) {
-    return {
-      id: req.id,
-      method: req.method,
-      url: req.url?.split("?")[0],
-    };
-  },
-res(res: any) {
-  return {
-    statusCode: res.statusCode,
-  };
-},
-}),
+    logger,
+    serializers: {
+      req(req: any) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url?.split("?")[0],
+        };
+      },
 
-    
- 
-
+      res(res: any) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
+);
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
+
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "10mb",
+  }),
+);
 
 app.use(
   clerkMiddleware((req) => ({
