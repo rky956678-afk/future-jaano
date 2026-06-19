@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "artifacts/api-server/**"
-      - ".github/workflows/deploy-api-server.yml"
   workflow_dispatch:
 
 jobs:
@@ -18,22 +15,26 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
       - uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-      - run: pnpm run build
+      - name: Build project
+        run: pnpm run build
 
       - name: Deploy to Railway
-        if: success()
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        working-directory: artifacts/api-server
         run: |
           npm install -g @railway/cli
-          railway whoami
+
+          railway link \
+            --project 8490f18e-045f-47d9-81fb-103c830638d2
+
           railway up --detach
-        working-directory: artifacts/api-server
