@@ -11,16 +11,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Railway Debug
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build API Server
+        run: pnpm --filter @workspace/api-server build
+
+      - name: Verify build output
+        run: ls -la artifacts/api-server/dist/
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
         env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          npm install -g @railway/cli
-
-          echo "Checking Railway Login..."
-          railway whoami
-
-          echo "Checking Projects..."
-          railway status
+          echo "Deploying to Railway..."
+          railway up --service api-server --detach
+          echo "Deploy triggered successfully!"

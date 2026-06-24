@@ -1,0 +1,8 @@
+[phases.install]
+cmds = ["npm install -g pnpm@9 && pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm --filter future-jaano build"]
+
+[start]
+cmd = "npx serve -s dist -l ${PORT:-3000}"
