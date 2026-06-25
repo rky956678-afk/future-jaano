@@ -1,11 +1,6 @@
-import type { Logger } from "pino";
-
-declare global {
-  namespace Express {
-    interface Request {
-      log: Logger;
-    }
+// Augment Express Request to include req.log added by pino-http middleware
+declare module "express-serve-static-core" {
+  interface Request {
+    log: import("pino").Logger;
   }
 }
-
-export {};
