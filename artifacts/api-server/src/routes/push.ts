@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { PushPayload } from "../lib/webPush";
 
 const router = Router();
@@ -39,7 +39,6 @@ export function buildPayload(language: string, zodiacSign: string | null): PushP
     return { title, body, url: "/horoscope", tag: `horoscope-${zodiacSign}` };
   }
 
-  // Generic notification when no sign set
   const title = lang === "hi" ? "Future Jaano â€“ à¤†à¤œ à¤•à¤¾ à¤…à¤ªà¤¡à¥‡à¤Ÿ" : "Future Jaano â€“ Daily Update";
   const body = lang === "hi"
     ? "à¤…à¤ªà¤¨à¤¾ à¤†à¤œ à¤•à¤¾ à¤°à¤¾à¤¶à¤¿à¤«à¤² à¤”à¤° à¤­à¤µà¤¿à¤·à¥à¤¯à¤«à¤² à¤¦à¥‡à¤–à¥‡à¤‚à¥¤"
