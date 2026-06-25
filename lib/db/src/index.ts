@@ -4,13 +4,20 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+// Lazy initialization - don't crash at import time if DATABASE_URL is missing.
+// The error will surface when the first DB query is made.
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  console.warn(
+    "[db] WARNING: DATABASE_URL is not set. Database operations will fail. " +
+    "Add a PostgreSQL database in Railway Variables."
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({
+  connectionString: DATABASE_URL || "postgresql://noop:noop@localhost:5432/noop",
+});
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
