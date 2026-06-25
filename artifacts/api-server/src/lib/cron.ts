@@ -3,7 +3,7 @@ import { db, pushSubscriptionsTable, usersTable } from "@workspace/db";
 import { eq, and, ne, or, isNull, sql } from "drizzle-orm";
 import { isPushConfigured, sendPush } from "./webPush";
 import { logger } from "./logger";
-import { buildPayload } from "../routes/push";
+import { buildPayload } from "./pushPayload";
 
 let started = false;
 

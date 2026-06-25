@@ -1,4 +1,4 @@
-import type { PushPayload } from "../lib/webPush";
+import type { PushPayload } from "./webPush";
 
 const ZODIAC_NAMES: Record<string, Record<string, string>> = {
   en: {
