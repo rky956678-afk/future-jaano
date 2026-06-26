@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import cors from "cors";
 const pinoHttp = require("pino-http");
 
@@ -41,21 +41,25 @@ app.use(
 
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
+// cors() types (CorsRequest) are incompatible with Express 5 strict RequestHandler - cast needed
+app.use(cors({ credentials: true, origin: true }) as unknown as RequestHandler);
 
-app.use(express.json({ limit: "10mb" }));
+// express.json/urlencoded return connect NextHandleFunction, not Express 5 RequestHandler
+app.use(express.json({ limit: "10mb" }) as unknown as RequestHandler);
 
 app.use(
   express.urlencoded({
     extended: true,
     limit: "10mb",
-  }),
+  }) as unknown as RequestHandler,
 );
 
 app.use(
   clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
+      // Express 5 generic Request doesn't statically satisfy { headers: IncomingHttpHeaders }
+      // under TS 5.9 strict overload checking - cast to satisfy the structural type
+      getClerkProxyHost(req as { headers: Record<string, string | string[] | undefined> }) ?? "",
       process.env.CLERK_PUBLISHABLE_KEY,
     ),
   })),
