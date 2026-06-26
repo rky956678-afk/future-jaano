@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile"
+buildCommand = "pnpm install --no-frozen-lockfile"
 
 [deploy]
 startCommand = "node lib/db/server.mjs"
