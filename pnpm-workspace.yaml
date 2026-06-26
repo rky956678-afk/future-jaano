@@ -1,3 +1,4 @@
+# Updated: 2026-06-26 17:08:44 - force rebuild with Linux oxide native bindings
 packages:
   - artifacts/*
   - lib/*
