@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile && pnpm --filter future-jaano build"
+buildCommand = "npm install -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile && pnpm --filter future-jaano build"
 
 [deploy]
 startCommand = "npx serve -s artifacts/future-jaano/dist -l $PORT"

@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm install -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile"
+
+[deploy]
+startCommand = "node lib/api-zod/server.mjs"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
