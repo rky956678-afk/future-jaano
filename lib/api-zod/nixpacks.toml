@@ -1,4 +1,4 @@
-﻿[phases.install]
+[phases.install]
 cmds = [
   "npm install -g pnpm@9.15.4",
   "pnpm install --no-frozen-lockfile"
@@ -8,4 +8,4 @@ cmds = [
 cmds = ["echo no-build"]
 
 [start]
-cmd = "node server.js"
+cmd = "node server.mjs"
