@@ -1,5 +1,5 @@
-[phases.install]
-cmds = ["npm install -g pnpm@9 && pnpm install --no-frozen-lockfile"]
+﻿[phases.install]
+cmds = ["npm install -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile"]
 
 [phases.build]
 cmds = ["pnpm --filter @workspace/api-server build"]
