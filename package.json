@@ -13,22 +13,5 @@
                             "prettier":  "^3.8.3",
                             "typescript":  "~5.9.3"
                         },
-    "packageManager":  "pnpm@9.15.4",
-    "pnpm":  {
-                 "supportedArchitectures":  {
-                                                "os":  [
-                                                           "linux",
-                                                           "win32",
-                                                           "darwin"
-                                                       ],
-                                                "cpu":  [
-                                                            "x64",
-                                                            "arm64"
-                                                        ],
-                                                "libc":  [
-                                                             "glibc",
-                                                             "musl"
-                                                         ]
-                                            }
-             }
+    "packageManager":  "pnpm@9.15.4"
 }

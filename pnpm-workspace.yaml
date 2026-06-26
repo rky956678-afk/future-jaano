@@ -41,3 +41,16 @@ onlyBuiltDependencies:
 overrides:
   esbuild: "0.27.3"
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
+
+# Include optional packages for all platforms so Railway (Linux) gets native binaries
+supportedArchitectures:
+  os:
+    - linux
+    - win32
+    - darwin
+  cpu:
+    - x64
+    - arm64
+  libc:
+    - glibc
+    - musl
