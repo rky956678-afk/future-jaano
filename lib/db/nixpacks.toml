@@ -1,2 +1,5 @@
 [phases.install]
 cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["echo 'lib package - no build step required'"]
