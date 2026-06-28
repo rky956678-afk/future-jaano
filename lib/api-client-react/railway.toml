@@ -1,8 +1,8 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile"
+buildCommand = "echo 'no build needed'"
 
 [deploy]
-startCommand = "node lib/api-client-react/server.mjs"
+startCommand = "node server.mjs"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
