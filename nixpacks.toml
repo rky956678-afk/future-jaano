@@ -1,2 +1,8 @@
 [phases.install]
-cmds = ["pnpm install --no-frozen-lockfile"]
+cmds = ["echo 'no install needed'"]
+
+[phases.build]
+cmds = ["echo 'no build needed'"]
+
+[start]
+cmd = "node lib/api-client-react/server.mjs"
