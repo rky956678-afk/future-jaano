@@ -1,0 +1,203 @@
+{
+  "info": {
+    "name": "Future Jaano API",
+    "description": "AI-powered spiritual guidance platform API — https://api.futurejaano.com",
+    "version": "1.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "https://api.futurejaano.com", "type": "string" },
+    { "key": "token", "value": "YOUR_CLERK_JWT_TOKEN", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health",
+      "item": [
+        { "name": "GET /", "request": { "method": "GET", "url": "{{base}}/" } },
+        { "name": "GET /health", "request": { "method": "GET", "url": "{{base}}/health" } },
+        { "name": "GET /health/live", "request": { "method": "GET", "url": "{{base}}/health/live" } },
+        { "name": "GET /health/ready", "request": { "method": "GET", "url": "{{base}}/health/ready" } },
+        { "name": "GET /api/health", "request": { "method": "GET", "url": "{{base}}/api/health" } },
+        { "name": "GET /api/status", "request": { "method": "GET", "url": "{{base}}/api/status" } },
+        { "name": "GET /api/healthz", "request": { "method": "GET", "url": "{{base}}/api/healthz" } },
+        { "name": "GET /docs", "request": { "method": "GET", "url": "{{base}}/docs" } },
+        { "name": "GET /docs/openapi.json", "request": { "method": "GET", "url": "{{base}}/docs/openapi.json" } },
+        { "name": "GET /debug/env", "request": { "method": "GET", "url": "{{base}}/debug/env" } },
+        { "name": "GET /debug/routes", "request": { "method": "GET", "url": "{{base}}/debug/routes" } },
+        { "name": "GET /debug/db", "request": { "method": "GET", "url": "{{base}}/debug/db" } },
+        { "name": "GET /debug/version", "request": { "method": "GET", "url": "{{base}}/debug/version" } }
+      ]
+    },
+    {
+      "name": "🌟 Horoscope",
+      "item": [
+        { "name": "GET /api/horoscope/signs", "request": { "method": "GET", "url": "{{base}}/api/horoscope/signs" } },
+        { "name": "GET /api/horoscope/daily/:sign", "request": { "method": "GET", "url": "{{base}}/api/horoscope/daily/aries?language=en" } },
+        { "name": "GET /api/horoscope/weekly/:sign", "request": { "method": "GET", "url": "{{base}}/api/horoscope/weekly/aries?language=en" } },
+        { "name": "GET /api/horoscope/:sign", "request": { "method": "GET", "url": "{{base}}/api/horoscope/aries?language=en" } },
+        { "name": "GET /api/horoscope?sign=", "request": { "method": "GET", "url": "{{base}}/api/horoscope?sign=aries&language=en" } }
+      ]
+    },
+    {
+      "name": "🪐 Panchang",
+      "item": [
+        { "name": "GET /api/panchang", "request": { "method": "GET", "url": "{{base}}/api/panchang?date=2026-06-28&language=en" } }
+      ]
+    },
+    {
+      "name": "🌙 Gochar",
+      "item": [
+        { "name": "GET /api/gochar", "request": { "method": "GET", "url": "{{base}}/api/gochar?language=en" } }
+      ]
+    },
+    {
+      "name": "📜 Kundli",
+      "item": [
+        {
+          "name": "POST /api/kundli",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/api/kundli",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Rahul Sharma\",\"dateOfBirth\":\"1990-05-15\",\"timeOfBirth\":\"10:30\",\"placeOfBirth\":\"Mumbai\",\"language\":\"en\"}"
+            }
+          }
+        },
+        { "name": "GET /api/kundli/my", "request": { "method": "GET", "url": "{{base}}/api/kundli/my", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/kundli/:id", "request": { "method": "GET", "url": "{{base}}/api/kundli/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "💞 Kundli Milan",
+      "item": [
+        {
+          "name": "POST /api/kundli-milan",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/api/kundli-milan",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"person1\":{\"name\":\"Rahul\",\"dateOfBirth\":\"1990-05-15\",\"placeOfBirth\":\"Mumbai\"},\"person2\":{\"name\":\"Priya\",\"dateOfBirth\":\"1992-08-20\",\"placeOfBirth\":\"Delhi\"},\"language\":\"en\"}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔢 Numerology",
+      "item": [
+        {
+          "name": "POST /api/numerology",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/api/numerology",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"fullName\":\"Rahul Sharma\",\"dateOfBirth\":\"1990-05-15\",\"language\":\"en\"}" }
+          }
+        },
+        { "name": "GET /api/numerology/:id", "request": { "method": "GET", "url": "{{base}}/api/numerology/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "🧘 Yoga",
+      "item": [
+        {
+          "name": "POST /api/yoga/suggestions",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/api/yoga/suggestions",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"healthGoals\":\"stress relief\",\"fitnessLevel\":\"beginner\",\"language\":\"en\"}" }
+          }
+        },
+        { "name": "GET /api/yoga/plans/my", "request": { "method": "GET", "url": "{{base}}/api/yoga/plans/my", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "🏠 Vastu / Image Analysis",
+      "item": [
+        { "name": "POST /api/vastu/analyze", "request": { "method": "POST", "url": "{{base}}/api/vastu/analyze", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"imageBase64\":\"BASE64_IMAGE\",\"roomType\":\"living_room\",\"language\":\"en\"}" } } },
+        { "name": "GET /api/vastu/:id", "request": { "method": "GET", "url": "{{base}}/api/vastu/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "POST /api/palm/analyze", "request": { "method": "POST", "url": "{{base}}/api/palm/analyze", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"imageBase64\":\"BASE64_IMAGE\",\"language\":\"en\"}" } } },
+        { "name": "GET /api/palm/:id", "request": { "method": "GET", "url": "{{base}}/api/palm/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "POST /api/face/analyze", "request": { "method": "POST", "url": "{{base}}/api/face/analyze", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"imageBase64\":\"BASE64_IMAGE\",\"language\":\"en\"}" } } },
+        { "name": "GET /api/face/:id", "request": { "method": "GET", "url": "{{base}}/api/face/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "🔮 Problem Solver",
+      "item": [
+        { "name": "POST /api/problems", "request": { "method": "POST", "url": "{{base}}/api/problems", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"description\":\"I am facing financial difficulties\",\"category\":\"finance\",\"language\":\"en\"}" } } },
+        { "name": "GET /api/problems/my", "request": { "method": "GET", "url": "{{base}}/api/problems/my", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/problems/:id", "request": { "method": "GET", "url": "{{base}}/api/problems/1", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "🌅 Dasha / Muhurat / Ashtakavarga",
+      "item": [
+        { "name": "POST /api/dasha", "request": { "method": "POST", "url": "{{base}}/api/dasha", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"dateOfBirth\":\"1990-05-15\",\"timeOfBirth\":\"10:30\",\"placeOfBirth\":\"Mumbai\",\"language\":\"en\"}" } } },
+        { "name": "POST /api/muhurat", "request": { "method": "POST", "url": "{{base}}/api/muhurat", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"date\":\"2026-07-01\",\"purpose\":\"marriage\",\"location\":\"Mumbai\",\"language\":\"en\"}" } } },
+        { "name": "POST /api/ashtakavarga", "request": { "method": "POST", "url": "{{base}}/api/ashtakavarga", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"dateOfBirth\":\"1990-05-15\",\"timeOfBirth\":\"10:30\",\"placeOfBirth\":\"Mumbai\",\"language\":\"en\"}" } } }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        { "name": "GET /api/users/me", "request": { "method": "GET", "url": "{{base}}/api/users/me", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "PATCH /api/users/me", "request": { "method": "PATCH", "url": "{{base}}/api/users/me", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Rahul Sharma\",\"zodiacSign\":\"aries\",\"language\":\"hi\"}" } } },
+        { "name": "GET /api/users/me/dashboard", "request": { "method": "GET", "url": "{{base}}/api/users/me/dashboard", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/users/me/readings", "request": { "method": "GET", "url": "{{base}}/api/users/me/readings", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        { "name": "GET /api/notifications", "request": { "method": "GET", "url": "{{base}}/api/notifications", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "PATCH /api/notifications/:id/read", "request": { "method": "PATCH", "url": "{{base}}/api/notifications/1/read", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "📲 Push Notifications",
+      "item": [
+        { "name": "GET /api/push/vapid-public-key", "request": { "method": "GET", "url": "{{base}}/api/push/vapid-public-key" } },
+        { "name": "GET /api/push/vapid-key", "request": { "method": "GET", "url": "{{base}}/api/push/vapid-key" } },
+        { "name": "POST /api/push/subscribe", "request": { "method": "POST", "url": "{{base}}/api/push/subscribe", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"endpoint\":\"https://fcm.googleapis.com/...\",\"p256dh\":\"KEY\",\"auth\":\"AUTH\",\"hour\":7,\"minute\":0,\"language\":\"en\"}" } } },
+        { "name": "DELETE /api/push/unsubscribe", "request": { "method": "DELETE", "url": "{{base}}/api/push/unsubscribe", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"endpoint\":\"https://fcm.googleapis.com/...\"}" } } },
+        { "name": "GET /api/push/preferences", "request": { "method": "GET", "url": "{{base}}/api/push/preferences", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "PATCH /api/push/preferences", "request": { "method": "PATCH", "url": "{{base}}/api/push/preferences", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"endpoint\":\"https://fcm.googleapis.com/...\",\"hour\":8,\"enabled\":true}" } } },
+        { "name": "POST /api/push/test", "request": { "method": "POST", "url": "{{base}}/api/push/test", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "💳 Subscriptions & Payments",
+      "item": [
+        { "name": "GET /api/subscriptions/plans", "request": { "method": "GET", "url": "{{base}}/api/subscriptions/plans" } },
+        { "name": "GET /api/subscriptions/my", "request": { "method": "GET", "url": "{{base}}/api/subscriptions/my", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "POST /api/payments/initiate", "request": { "method": "POST", "url": "{{base}}/api/payments/initiate", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"planId\":1}" } } },
+        { "name": "POST /api/payments/verify", "request": { "method": "POST", "url": "{{base}}/api/payments/verify", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"razorpayOrderId\":\"order_xxx\",\"razorpayPaymentId\":\"pay_xxx\",\"razorpaySignature\":\"sig_xxx\"}" } } },
+        { "name": "GET /api/payments/history", "request": { "method": "GET", "url": "{{base}}/api/payments/history", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    },
+    {
+      "name": "📝 Blog",
+      "item": [
+        { "name": "GET /api/blog/posts", "request": { "method": "GET", "url": "{{base}}/api/blog/posts?language=en&page=1&limit=10" } },
+        { "name": "GET /api/blog/posts/trending", "request": { "method": "GET", "url": "{{base}}/api/blog/posts/trending" } },
+        { "name": "GET /api/blog/posts/:slug", "request": { "method": "GET", "url": "{{base}}/api/blog/posts/my-first-post" } },
+        { "name": "POST /api/blog/posts (Admin)", "request": { "method": "POST", "url": "{{base}}/api/blog/posts", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"title\":\"Test Post\",\"slug\":\"test-post\",\"excerpt\":\"Short excerpt\",\"content\":\"Full content\",\"category\":\"astrology\",\"author\":\"Admin\"}" } } }
+      ]
+    },
+    {
+      "name": "🛡️ Admin",
+      "item": [
+        { "name": "GET /api/admin/stats", "request": { "method": "GET", "url": "{{base}}/api/admin/stats", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/admin/users", "request": { "method": "GET", "url": "{{base}}/api/admin/users?page=1&limit=20", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/admin/readings/recent", "request": { "method": "GET", "url": "{{base}}/api/admin/readings/recent", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } },
+        { "name": "GET /api/admin/revenue", "request": { "method": "GET", "url": "{{base}}/api/admin/revenue", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }] } }
+      ]
+    }
+  ]
+}

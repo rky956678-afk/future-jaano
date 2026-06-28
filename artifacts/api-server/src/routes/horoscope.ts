@@ -9,18 +9,30 @@ const ZODIAC_SIGNS = [
   "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
 ];
 
-async function fetchHoroscope(sign: string, language: string) {
-  if (!isOpenAIConfigured()) {
-    return {
-      sign,
-      date: new Date().toISOString().split("T")[0],
-      prediction: "AI horoscope is currently unavailable. Please try again later.",
-      luckyNumber: "7",
-      luckyColor: "Gold",
-      mood: "Positive",
-      tip: "Trust your instincts today.",
-    };
-  }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function mockHoroscope(sign: string) {
+  return {
+    sign,
+    date:          new Date().toISOString().split("T")[0],
+    prediction:    "AI horoscope is currently unavailable. The stars align in your favour — trust the process.",
+    health:        "Take care of yourself and rest well.",
+    career:        "Stay focused and opportunities will come.",
+    love:          "Open your heart to possibilities.",
+    finance:       "Be mindful of spending this week.",
+    luckyNumber:   7,
+    luckyColor:    "Gold",
+    luckyGem:      "Citrine",
+    compatibility: "Aries",
+    mood:          "Positive",
+    tip:           "Trust your instincts today.",
+    rating:        4,
+    emoji:         "⭐",
+  };
+}
+
+async function fetchDailyHoroscope(sign: string, language: string) {
+  if (!isOpenAIConfigured()) return mockHoroscope(sign);
 
   const lang = resolveLanguageName(language);
   const response = await openai.chat.completions.create({
@@ -28,7 +40,23 @@ async function fetchHoroscope(sign: string, language: string) {
     messages: [
       {
         role: "user",
-        content: `You are a Vedic astrologer. Give a daily horoscope for ${sign} sign in ${lang}. Format as JSON with these exact fields: { "prediction": "detailed daily prediction", "luckyNumber": "number", "luckyColor": "color", "mood": "mood", "tip": "practical tip for today" }`,
+        content: `You are a Vedic astrologer. Give a detailed daily horoscope for ${sign} sign in ${lang}.
+Return ONLY a JSON object with these exact fields:
+{
+  "prediction": "2-3 sentence daily prediction",
+  "health": "1 sentence health advice",
+  "career": "1 sentence career advice",
+  "love": "1 sentence love/relationship advice",
+  "finance": "1 sentence finance advice",
+  "luckyNumber": <integer 1-9>,
+  "luckyColor": "color name",
+  "luckyGem": "gemstone name",
+  "compatibility": "most compatible sign today",
+  "mood": "one word mood",
+  "tip": "practical tip for today",
+  "rating": <integer 1-5>,
+  "emoji": "one emoji representing today"
+}`,
       },
     ],
     response_format: { type: "json_object" },
@@ -40,38 +68,143 @@ async function fetchHoroscope(sign: string, language: string) {
     date: new Date().toISOString().split("T")[0],
     language,
     ...data,
+    luckyNumber: Number(data.luckyNumber) || 7,
+    rating:      Number(data.rating) || 4,
   };
 }
+
+async function fetchWeeklyHoroscope(sign: string, language: string) {
+  if (!isOpenAIConfigured()) {
+    return {
+      sign,
+      weekStart: getMonday(),
+      weekEnd:   getSunday(),
+      prediction: "Weekly AI horoscope is currently unavailable.",
+      highlights: ["Stay positive", "Focus on goals", "Connect with loved ones"],
+      luckyDays: ["Wednesday", "Friday"],
+      luckyNumber: 7,
+      luckyColor: "Blue",
+      theme: "Growth",
+    };
+  }
+
+  const lang = resolveLanguageName(language);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: `You are a Vedic astrologer. Give a weekly horoscope for ${sign} sign for the week of ${getMonday()} to ${getSunday()} in ${lang}.
+Return ONLY a JSON object:
+{
+  "prediction": "2-3 sentence weekly overview",
+  "highlights": ["highlight 1", "highlight 2", "highlight 3"],
+  "luckyDays": ["day1", "day2"],
+  "luckyNumber": <integer 1-9>,
+  "luckyColor": "color name",
+  "theme": "one word theme for the week",
+  "health": "weekly health advice",
+  "career": "weekly career advice",
+  "love": "weekly love advice",
+  "finance": "weekly finance advice"
+}`,
+      },
+    ],
+    response_format: { type: "json_object" },
+  });
+
+  const data = JSON.parse(response.choices[0].message.content || "{}");
+  return {
+    sign,
+    weekStart: getMonday(),
+    weekEnd:   getSunday(),
+    language,
+    ...data,
+    luckyNumber: Number(data.luckyNumber) || 7,
+  };
+}
+
+function getMonday(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff)).toISOString().split("T")[0];
+}
+
+function getSunday(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? 0 : 7);
+  return new Date(d.setDate(diff)).toISOString().split("T")[0];
+}
+
+function validateSign(sign: string): string | null {
+  const s = sign.toLowerCase();
+  return ZODIAC_SIGNS.includes(s) ? s : null;
+}
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
 
 // GET /api/horoscope/signs — list all zodiac signs (MUST be before /:sign)
 router.get("/horoscope/signs", (_req, res) => {
   res.json({ signs: ZODIAC_SIGNS });
 });
 
-// GET /api/horoscope?sign=aries&language=en
+// GET /api/horoscope/daily/:sign — daily horoscope by path param (used by frontend)
+router.get("/horoscope/daily/:sign", async (req, res) => {
+  const sign = validateSign(req.params["sign"] as string);
+  if (!sign) {
+    res.status(400).json({ error: `Invalid zodiac sign "${req.params["sign"]}"`, validSigns: ZODIAC_SIGNS });
+    return;
+  }
+  const { lang = "en", language = lang } = req.query as Record<string, string>;
+  try {
+    const result = await fetchDailyHoroscope(sign, language);
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Error fetching daily horoscope");
+    res.status(500).json({ error: "Internal server error", message: "Failed to generate horoscope" });
+  }
+});
+
+// GET /api/horoscope/weekly/:sign — weekly horoscope
+router.get("/horoscope/weekly/:sign", async (req, res) => {
+  const sign = validateSign(req.params["sign"] as string);
+  if (!sign) {
+    res.status(400).json({ error: `Invalid zodiac sign "${req.params["sign"]}"`, validSigns: ZODIAC_SIGNS });
+    return;
+  }
+  const { language = "en" } = req.query as Record<string, string>;
+  try {
+    const result = await fetchWeeklyHoroscope(sign, language);
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Error fetching weekly horoscope");
+    res.status(500).json({ error: "Internal server error", message: "Failed to generate weekly horoscope" });
+  }
+});
+
+// GET /api/horoscope?sign=aries&language=en — query-param version
 router.get("/horoscope", async (req, res) => {
   const { sign, language = "en" } = req.query as Record<string, string>;
 
   if (!sign) {
     res.status(400).json({
-      error: "sign query parameter is required",
+      error:      "sign query parameter is required",
       validSigns: ZODIAC_SIGNS,
-      example: "/api/horoscope?sign=aries",
+      example:    "/api/horoscope?sign=aries",
     });
     return;
   }
 
-  const normalised = sign.toLowerCase();
-  if (!ZODIAC_SIGNS.includes(normalised)) {
-    res.status(400).json({
-      error: `Invalid sign "${sign}"`,
-      validSigns: ZODIAC_SIGNS,
-    });
+  const normalised = validateSign(sign);
+  if (!normalised) {
+    res.status(400).json({ error: `Invalid sign "${sign}"`, validSigns: ZODIAC_SIGNS });
     return;
   }
 
   try {
-    const result = await fetchHoroscope(normalised, language);
+    const result = await fetchDailyHoroscope(normalised, language);
     res.json(result);
   } catch (err) {
     req.log.error({ err }, "Error fetching horoscope");
@@ -79,21 +212,16 @@ router.get("/horoscope", async (req, res) => {
   }
 });
 
-// GET /api/horoscope/:sign
+// GET /api/horoscope/:sign — path-param shorthand (MUST be after /signs and /daily/:sign)
 router.get("/horoscope/:sign", async (req, res) => {
-  const sign = (req.params["sign"] as string).toLowerCase();
-  const { language = "en" } = req.query as Record<string, string>;
-
-  if (!ZODIAC_SIGNS.includes(sign)) {
-    res.status(404).json({
-      error: `Invalid zodiac sign "${sign}"`,
-      validSigns: ZODIAC_SIGNS,
-    });
+  const sign = validateSign(req.params["sign"] as string);
+  if (!sign) {
+    res.status(404).json({ error: `Invalid zodiac sign "${req.params["sign"]}"`, validSigns: ZODIAC_SIGNS });
     return;
   }
-
+  const { language = "en" } = req.query as Record<string, string>;
   try {
-    const result = await fetchHoroscope(sign, language);
+    const result = await fetchDailyHoroscope(sign, language);
     res.json(result);
   } catch (err) {
     req.log.error({ err }, "Error fetching horoscope");

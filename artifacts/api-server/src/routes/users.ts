@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, usersTable, readingsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, usersTable, readingsTable, userSubscriptionsTable, notificationsTable } from "@workspace/db";
+import { eq, desc, count } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router = Router();
@@ -83,6 +83,60 @@ router.patch("/users/me", requireAuth, async (req, res) => {
     });
   } catch (err) {
     req.log.error({ err }, "Error updating user profile");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/users/me/dashboard — DashboardSummary for the home page
+router.get("/users/me/dashboard", requireAuth, async (req, res) => {
+  try {
+    const dbUser = (req as any).dbUser;
+
+    // Total readings count
+    const [readingsCount] = await db
+      .select({ count: count() })
+      .from(readingsTable)
+      .where(eq(readingsTable.userId, dbUser.id));
+
+    // Recent activity (last 5 readings)
+    const recentReadings = await db
+      .select()
+      .from(readingsTable)
+      .where(eq(readingsTable.userId, dbUser.id))
+      .orderBy(desc(readingsTable.createdAt))
+      .limit(5);
+
+    // Active subscription
+    const activeSub = await db
+      .select()
+      .from(userSubscriptionsTable)
+      .where(eq(userSubscriptionsTable.userId, dbUser.id))
+      .orderBy(desc(userSubscriptionsTable.startDate))
+      .limit(1);
+
+    // Unread notifications count
+    const [unreadCount] = await db
+      .select({ count: count() })
+      .from(notificationsTable)
+      .where(eq(notificationsTable.userId, dbUser.id));
+
+    res.json({
+      totalReadings:       Number(readingsCount.count),
+      todayHoroscope:      null, // populated by frontend from /api/horoscope/daily/:sign
+      activeSubscription:  activeSub.length > 0 ? activeSub[0].planName : null,
+      recentActivity:      recentReadings.map((r) => ({
+        id:        r.id,
+        type:      r.type,
+        summary:   r.summary,
+        isPremium: r.isPremium,
+        createdAt: r.createdAt.toISOString(),
+      })),
+      zodiacSign:          dbUser.zodiacSign ?? null,
+      unreadNotifications: Number(unreadCount.count),
+      memberSince:         dbUser.createdAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error getting user dashboard");
     res.status(500).json({ error: "Internal server error" });
   }
 });

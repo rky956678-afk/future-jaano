@@ -1,5 +1,8 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import compression from "compression";
+import cookieParser from "cookie-parser";
 const pinoHttp = require("pino-http");
 
 import { clerkMiddleware } from "@clerk/express";
@@ -12,67 +15,206 @@ import {
 } from "./middlewares/clerkProxyMiddleware";
 
 import router from "./routes";
+import swaggerRouter from "./routes/swagger";
 import { logger } from "./lib/logger";
+
+// ─── Startup env validation ───────────────────────────────────────────────────
+
+const REQUIRED_VARS: Record<string, string> = {
+  DATABASE_URL:          "PostgreSQL connection string (add a Postgres service in Railway)",
+  CLERK_SECRET_KEY:      "Clerk secret key from https://dashboard.clerk.com",
+  CLERK_PUBLISHABLE_KEY: "Clerk publishable key from https://dashboard.clerk.com",
+  OPENAI_API_KEY:        "OpenAI API key from https://platform.openai.com",
+};
+
+const missing = Object.entries(REQUIRED_VARS).filter(([k]) => !process.env[k]);
+if (missing.length > 0) {
+  logger.error(
+    "\n╔══════════════════════════════════════════════════╗\n" +
+    "║  STARTUP FAILED — missing environment variables  ║\n" +
+    "╚══════════════════════════════════════════════════╝\n" +
+    missing.map(([k, hint]) => `  ✗ ${k}\n      → ${hint}`).join("\n") +
+    "\n\nSet these in Railway → Variables before deploying.\n"
+  );
+  process.exit(1);
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
 
 const app: Express = express();
 
 app.set("trust proxy", 1);
 
+// Security headers (CSP disabled — API only, no HTML served)
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }),
+);
+
+// Gzip compression
+app.use(compression());
+
+// Request logging
 app.use(
   pinoHttp({
     logger,
     serializers: {
       req(req: any) {
         return {
-          id: req.id,
+          id:     req.id,
           method: req.method,
-          url: req.url?.split("?")[0],
+          url:    req.url?.split("?")[0],
         };
       },
       res(res: any) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }),
 );
 
+// Clerk proxy (must be before CORS)
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
-
-app.use(express.json({ limit: "10mb" }));
+// CORS
+const ALLOWED_ORIGINS = [
+  "https://futurejaano.com",
+  "https://www.futurejaano.com",
+  ...(process.env.CORS_EXTRA_ORIGINS
+    ? process.env.CORS_EXTRA_ORIGINS.split(",").map((o) => o.trim())
+    : []),
+  // Allow all in dev
+  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3001", "http://localhost:5173", "http://localhost:4173"] : []),
+];
 
 app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb",
+  cors({
+    credentials: true,
+    origin: (origin, cb) => {
+      // Allow no-origin (curl, Postman, same-origin)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      return cb(null, false);
+    },
   }),
 );
+
+// Body parsers
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
 
 // ─── Public routes — registered BEFORE clerkMiddleware ───────────────────────
 
 // GET / — API root
 app.get("/", (_req, res) => {
-  res.json({ success: true, message: "Future Jaano API is running" });
+  res.json({
+    success:  true,
+    message:  "Future Jaano API is running",
+    version:  "1.1.0",
+    docs:     "/docs",
+    health:   "/health",
+    status:   "/api/status",
+  });
 });
 
-// GET /health — Railway liveness probe
+// GET /health — Railway/K8s liveness probe
 app.get("/health", (_req, res) => {
+  res.json({
+    status:    "ok",
+    timestamp: new Date().toISOString(),
+    uptime:    Math.floor(process.uptime()),
+  });
+});
+
+// GET /health/live — explicit liveness probe
+app.get("/health/live", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// GET /debug/env — show which env vars are present (no secrets exposed)
+// GET /health/ready — readiness probe (checks DB + OpenAI config)
+app.get("/health/ready", async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    server:   true,
+    database: false,
+    openai:   !!process.env.OPENAI_API_KEY,
+    clerk:    !!(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY),
+  };
+
+  try {
+    const { pool } = await import("@workspace/db");
+    const client = await pool.connect();
+    await client.query("SELECT 1");
+    client.release();
+    checks.database = true;
+  } catch {
+    checks.database = false;
+  }
+
+  const allReady = Object.values(checks).every(Boolean);
+  res.status(allReady ? 200 : 503).json({
+    status: allReady ? "ready" : "degraded",
+    checks,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// GET /debug/env — which env vars are present (no secrets exposed)
 app.get("/debug/env", (_req, res) => {
   res.json({
-    node_env: process.env.NODE_ENV ?? "unknown",
-    database: !!process.env.DATABASE_URL,
-    clerk: !!(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY),
-    openai: !!process.env.OPENAI_API_KEY,
-    razorpay: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
-    vapid: !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+    node_env:  process.env.NODE_ENV ?? "unknown",
+    database:  !!process.env.DATABASE_URL,
+    clerk:     !!(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY),
+    openai:    !!process.env.OPENAI_API_KEY,
+    razorpay:  !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+    vapid:     !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+    port:      process.env.PORT ?? "3000",
+    uptime:    Math.floor(process.uptime()),
+    memory_mb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
   });
+});
+
+// GET /debug/version — version + build info
+app.get("/debug/version", (_req, res) => {
+  res.json({
+    name:      "Future Jaano API",
+    version:   "1.1.0",
+    node:      process.version,
+    env:       process.env.NODE_ENV ?? "unknown",
+    startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
+    uptime_s:  Math.floor(process.uptime()),
+  });
+});
+
+// GET /debug/db — check DB connectivity + table counts
+app.get("/debug/db", async (_req, res) => {
+  if (!process.env.DATABASE_URL) {
+    res.status(503).json({ error: "DATABASE_URL not set" });
+    return;
+  }
+  try {
+    const { pool } = await import("@workspace/db");
+    const client = await pool.connect();
+    const tables = [
+      "users", "readings", "kundli_reports", "numerology_reports",
+      "blog_posts", "payments", "user_subscriptions", "subscription_plans",
+      "notifications", "push_subscriptions",
+    ];
+    const counts: Record<string, number> = {};
+    for (const t of tables) {
+      try {
+        const r = await client.query(`SELECT COUNT(*) FROM ${t}`);
+        counts[t] = Number(r.rows[0].count);
+      } catch {
+        counts[t] = -1; // table doesn't exist yet
+      }
+    }
+    client.release();
+    res.json({ status: "connected", tables: counts, timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    res.status(503).json({ status: "error", error: err.message, timestamp: new Date().toISOString() });
+  }
 });
 
 // GET /debug/routes — list every registered Express route
@@ -81,7 +223,6 @@ app.get("/debug/routes", (req, res) => {
 
   function extractRoutes(stack: any[], prefix = "") {
     for (const layer of stack) {
-      // Express 5: route is on layer.route
       if (layer.route) {
         const routePath = prefix + (layer.route.path ?? "");
         const methods = layer.route.methods ?? {};
@@ -91,16 +232,10 @@ app.get("/debug/routes", (req, res) => {
           }
         }
       }
-      // Sub-router: handle is a function with a .stack property
-      const subStack =
-        layer.handle?.stack ??
-        layer.handle?.router?.stack ??
-        null;
+      const subStack = layer.handle?.stack ?? layer.handle?.router?.stack ?? null;
       if (subStack) {
-        // Try to extract mount prefix from regexp source
         let mountPath = prefix;
         const src: string = layer.regexp?.source ?? "";
-        // Skip pass-through regexps
         if (src && src !== "^\\/?" && src !== "^\\/?(?=\\/|$)" && !src.startsWith("^(?=")) {
           const m = src.match(/^\^\\\/([^\\(?]+)/);
           if (m) {
@@ -112,14 +247,18 @@ app.get("/debug/routes", (req, res) => {
     }
   }
 
-  // Express 5 stores the router at app.router (not app._router)
   const appRouter = (req.app as any).router ?? (req.app as any)._router;
   if (appRouter?.stack) {
     extractRoutes(appRouter.stack);
   }
 
+  routes.sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
   res.json({ count: routes.length, routes });
 });
+
+// ─── Swagger / API docs (public, no auth) ────────────────────────────────────
+
+app.use(swaggerRouter);
 
 // ─── Clerk middleware ─────────────────────────────────────────────────────────
 
@@ -140,18 +279,30 @@ app.use("/api", router);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
-    error: "Not Found",
+    error:   "Not Found",
     message: `Cannot ${req.method} ${req.path}`,
-    hint: "Visit /debug/routes to see all available routes",
+    hint:    "Visit /debug/routes to see all available routes, or /docs for API documentation",
   });
 });
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error({ err }, "Unhandled error");
-  res.status(500).json({ error: "Internal server error", message: err.message });
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Pino already logs via pinoHttp; this is for errors that bypass it
+  logger.error({ err, stack: err?.stack }, "Unhandled error");
+
+  const status  = typeof err?.status === "number"  ? err.status  :
+                  typeof err?.statusCode === "number" ? err.statusCode : 500;
+  const message = process.env.NODE_ENV === "production" && status === 500
+    ? "Internal server error"
+    : (err?.message ?? "Unknown error");
+
+  res.status(status).json({
+    error:   status === 500 ? "Internal Server Error" : err?.name ?? "Error",
+    message,
+    ...(process.env.NODE_ENV !== "production" && { stack: err?.stack }),
+  });
 });
 
 export default app;

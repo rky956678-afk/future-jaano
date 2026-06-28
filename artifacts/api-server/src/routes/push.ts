@@ -2,11 +2,13 @@ import { Router } from "express";
 import { db, pushSubscriptionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { isPushConfigured, getPublicKey } from "../lib/webPush";
+import { isPushConfigured, getPublicKey, sendPush } from "../lib/webPush";
 
 const router = Router();
 
-// GET /api/push/vapid-key — public, no auth required
+// ─── VAPID public key ─────────────────────────────────────────────────────────
+
+// GET /api/push/vapid-key — original path
 router.get("/push/vapid-key", (_req, res) => {
   if (!isPushConfigured()) {
     res.status(503).json({ error: "Push notifications are not configured on this server" });
@@ -14,6 +16,17 @@ router.get("/push/vapid-key", (_req, res) => {
   }
   res.json({ publicKey: getPublicKey() });
 });
+
+// GET /api/push/vapid-public-key — alias expected by generated API client
+router.get("/push/vapid-public-key", (_req, res) => {
+  if (!isPushConfigured()) {
+    res.status(503).json({ error: "Push notifications are not configured on this server" });
+    return;
+  }
+  res.json({ publicKey: getPublicKey() });
+});
+
+// ─── Subscribe ────────────────────────────────────────────────────────────────
 
 // POST /api/push/subscribe — register a push subscription
 router.post("/push/subscribe", requireAuth, async (req, res) => {
@@ -33,7 +46,6 @@ router.post("/push/subscribe", requireAuth, async (req, res) => {
       return;
     }
 
-    // Upsert: update if endpoint already exists, insert otherwise
     const existing = await db
       .select()
       .from(pushSubscriptionsTable)
@@ -48,14 +60,14 @@ router.post("/push/subscribe", requireAuth, async (req, res) => {
       res.json({ success: true, message: "Push subscription updated" });
     } else {
       await db.insert(pushSubscriptionsTable).values({
-        userId: dbUser.id,
+        userId:    dbUser.id,
         endpoint,
         p256dh,
         auth,
         hour,
         minute,
         language,
-        enabled: true,
+        enabled:   true,
         userAgent: (req.headers["user-agent"] as string) ?? null,
       });
       res.status(201).json({ success: true, message: "Subscribed to push notifications" });
@@ -66,7 +78,9 @@ router.post("/push/subscribe", requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/push/unsubscribe — remove a push subscription
+// ─── Unsubscribe ──────────────────────────────────────────────────────────────
+
+// DELETE /api/push/unsubscribe
 router.delete("/push/unsubscribe", requireAuth, async (req, res) => {
   try {
     const { endpoint } = req.body;
@@ -74,17 +88,17 @@ router.delete("/push/unsubscribe", requireAuth, async (req, res) => {
       res.status(400).json({ error: "endpoint is required" });
       return;
     }
-
     await db
       .delete(pushSubscriptionsTable)
       .where(eq(pushSubscriptionsTable.endpoint, endpoint));
-
     res.json({ success: true, message: "Unsubscribed from push notifications" });
   } catch (err) {
     req.log.error({ err }, "Error unsubscribing from push");
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// ─── Subscriptions list ───────────────────────────────────────────────────────
 
 // GET /api/push/subscriptions — list all subscriptions for current user
 router.get("/push/subscriptions", requireAuth, async (req, res) => {
@@ -97,12 +111,12 @@ router.get("/push/subscriptions", requireAuth, async (req, res) => {
 
     res.json(
       subscriptions.map((s) => ({
-        id: s.id,
-        endpoint: s.endpoint,
-        hour: s.hour,
-        minute: s.minute,
-        enabled: s.enabled,
-        language: s.language,
+        id:        s.id,
+        endpoint:  s.endpoint,
+        hour:      s.hour,
+        minute:    s.minute,
+        enabled:   s.enabled,
+        language:  s.language,
         createdAt: s.createdAt.toISOString(),
       })),
     );
@@ -112,20 +126,48 @@ router.get("/push/subscriptions", requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/push/subscription — update schedule / preferences
-router.patch("/push/subscription", requireAuth, async (req, res) => {
+// ─── Preferences (alias for /subscriptions + /subscription) ──────────────────
+
+// GET /api/push/preferences — returns user's push preferences (alias for /subscriptions)
+router.get("/push/preferences", requireAuth, async (req, res) => {
+  try {
+    const dbUser = (req as any).dbUser;
+    const subs = await db
+      .select()
+      .from(pushSubscriptionsTable)
+      .where(eq(pushSubscriptionsTable.userId, dbUser.id));
+
+    res.json({
+      enabled:       subs.some((s) => s.enabled),
+      subscriptions: subs.map((s) => ({
+        id:        s.id,
+        endpoint:  s.endpoint,
+        hour:      s.hour,
+        minute:    s.minute,
+        enabled:   s.enabled,
+        language:  s.language,
+        createdAt: s.createdAt.toISOString(),
+      })),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error getting push preferences");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PATCH /api/push/preferences — update push notification schedule / enable flag
+router.patch("/push/preferences", requireAuth, async (req, res) => {
   try {
     const { endpoint, hour, minute, enabled, language } = req.body;
     if (!endpoint) {
       res.status(400).json({ error: "endpoint is required" });
       return;
     }
-
     const [updated] = await db
       .update(pushSubscriptionsTable)
       .set({
-        ...(hour !== undefined && { hour }),
-        ...(minute !== undefined && { minute }),
+        ...(hour    !== undefined && { hour }),
+        ...(minute  !== undefined && { minute }),
         ...(enabled !== undefined && { enabled }),
         ...(language !== undefined && { language }),
       })
@@ -136,18 +178,96 @@ router.patch("/push/subscription", requireAuth, async (req, res) => {
       res.status(404).json({ error: "Subscription not found" });
       return;
     }
-
     res.json({
-      id: updated.id,
-      endpoint: updated.endpoint,
-      hour: updated.hour,
-      minute: updated.minute,
-      enabled: updated.enabled,
-      language: updated.language,
+      id:        updated.id,
+      endpoint:  updated.endpoint,
+      hour:      updated.hour,
+      minute:    updated.minute,
+      enabled:   updated.enabled,
+      language:  updated.language,
+      updatedAt: updated.updatedAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Error updating push preferences");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PATCH /api/push/subscription — original path (kept for backwards compat)
+router.patch("/push/subscription", requireAuth, async (req, res) => {
+  try {
+    const { endpoint, hour, minute, enabled, language } = req.body;
+    if (!endpoint) {
+      res.status(400).json({ error: "endpoint is required" });
+      return;
+    }
+    const [updated] = await db
+      .update(pushSubscriptionsTable)
+      .set({
+        ...(hour    !== undefined && { hour }),
+        ...(minute  !== undefined && { minute }),
+        ...(enabled !== undefined && { enabled }),
+        ...(language !== undefined && { language }),
+      })
+      .where(eq(pushSubscriptionsTable.endpoint, endpoint))
+      .returning();
+
+    if (!updated) {
+      res.status(404).json({ error: "Subscription not found" });
+      return;
+    }
+    res.json({
+      id:        updated.id,
+      endpoint:  updated.endpoint,
+      hour:      updated.hour,
+      minute:    updated.minute,
+      enabled:   updated.enabled,
+      language:  updated.language,
       updatedAt: updated.updatedAt.toISOString(),
     });
   } catch (err) {
     req.log.error({ err }, "Error updating push subscription");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ─── Test push ────────────────────────────────────────────────────────────────
+
+// POST /api/push/test — send a test notification to the current user
+router.post("/push/test", requireAuth, async (req, res) => {
+  if (!isPushConfigured()) {
+    res.status(503).json({ error: "Push notifications not configured (VAPID keys missing)" });
+    return;
+  }
+
+  try {
+    const dbUser = (req as any).dbUser;
+    const subs = await db
+      .select()
+      .from(pushSubscriptionsTable)
+      .where(eq(pushSubscriptionsTable.userId, dbUser.id));
+
+    if (subs.length === 0) {
+      res.status(404).json({ error: "No push subscriptions found for your account" });
+      return;
+    }
+
+    let sent = 0;
+    for (const sub of subs) {
+      try {
+        const result = await sendPush(
+          { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+          { title: "Future Jaano 🌟", body: "Test notification — your push notifications are working!", url: "/" },
+        );
+        if (result.ok) sent++;
+      } catch (pushErr) {
+        req.log.warn({ pushErr, endpoint: sub.endpoint }, "Failed to send test push to one subscription");
+      }
+    }
+
+    res.json({ success: true, sent, total: subs.length, message: `Sent test push to ${sent}/${subs.length} devices` });
+  } catch (err) {
+    req.log.error({ err }, "Error sending test push");
     res.status(500).json({ error: "Internal server error" });
   }
 });
