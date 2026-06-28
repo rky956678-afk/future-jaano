@@ -1,0 +1,8 @@
+[phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["echo 'api-spec - no build step required'"]
+
+[start]
+cmd = "node lib/api-spec/server.js"
