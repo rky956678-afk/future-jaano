@@ -61,7 +61,7 @@ IMPORTANT: Any mantras in the remedies field must always be written in authentic
 FINAL REMINDER: Every value in the JSON must be in ${lang}. ${scriptNote}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",

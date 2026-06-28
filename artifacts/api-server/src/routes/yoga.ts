@@ -33,7 +33,7 @@ Return JSON (asana names like Surya Namaskar/Bhujangasana can stay in standard S
 FINAL REMINDER: All explanatory text in ${lang}. ${instruction}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: instruction },
       { role: "user", content: prompt },

@@ -16,7 +16,7 @@ async function analyzeWithVision(imageBase64: string, systemPrompt: string, lang
       ? "All field values must be written in English."
       : `All field VALUES must be written in ${lang} using its native script. Do NOT use Roman/English transliteration. Only JSON keys remain in English.`;
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",

@@ -63,7 +63,7 @@ Return JSON (rashi names and the analysis text all in ${lang}):
 FINAL REMINDER: ${instruction}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: instruction },
       { role: "user", content: prompt },

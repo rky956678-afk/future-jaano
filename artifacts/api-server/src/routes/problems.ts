@@ -30,7 +30,7 @@ IMPORTANT: The mantra field MUST always be written in Sanskrit Devanagari script
 FINAL REMINDER: All other field values must be in ${lang}. ${instruction}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: instruction },
       { role: "user", content: prompt },

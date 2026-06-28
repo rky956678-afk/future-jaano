@@ -58,7 +58,7 @@ Return JSON with this exact structure (JSON keys stay in English, all values in 
 FINAL REMINDER: ${instruction}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
