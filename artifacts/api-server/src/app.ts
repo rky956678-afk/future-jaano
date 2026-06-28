@@ -81,29 +81,39 @@ app.get("/debug/routes", (req, res) => {
 
   function extractRoutes(stack: any[], prefix = "") {
     for (const layer of stack) {
+      // Express 5: route is on layer.route
       if (layer.route) {
-        const path = prefix + (layer.route.path ?? "");
-        for (const method of Object.keys(layer.route.methods)) {
-          if ((layer.route.methods as Record<string, boolean>)[method]) {
-            routes.push({ method: method.toUpperCase(), path });
+        const routePath = prefix + (layer.route.path ?? "");
+        const methods = layer.route.methods ?? {};
+        for (const method of Object.keys(methods)) {
+          if (methods[method]) {
+            routes.push({ method: method.toUpperCase(), path: routePath });
           }
         }
-      } else if (layer.handle?.stack) {
-        // Sub-router — recover the mount path from the regexp
+      }
+      // Sub-router: handle is a function with a .stack property
+      const subStack =
+        layer.handle?.stack ??
+        layer.handle?.router?.stack ??
+        null;
+      if (subStack) {
+        // Try to extract mount prefix from regexp source
         let mountPath = prefix;
         const src: string = layer.regexp?.source ?? "";
-        if (src && src !== "^\\/?" && src !== "^\\/?(?=\\/|$)") {
+        // Skip pass-through regexps
+        if (src && src !== "^\\/?" && src !== "^\\/?(?=\\/|$)" && !src.startsWith("^(?=")) {
           const m = src.match(/^\^\\\/([^\\(?]+)/);
           if (m) {
             mountPath = prefix + "/" + m[1].replace(/\\\//g, "/").replace(/\/$/, "");
           }
         }
-        extractRoutes(layer.handle.stack, mountPath);
+        extractRoutes(subStack, mountPath);
       }
     }
   }
 
-  const appRouter = (req.app as any)._router;
+  // Express 5 stores the router at app.router (not app._router)
+  const appRouter = (req.app as any).router ?? (req.app as any)._router;
   if (appRouter?.stack) {
     extractRoutes(appRouter.stack);
   }

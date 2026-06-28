@@ -43,6 +43,11 @@ async function fetchHoroscope(sign: string, language: string) {
   };
 }
 
+// GET /api/horoscope/signs — list all zodiac signs (MUST be before /:sign)
+router.get("/horoscope/signs", (_req, res) => {
+  res.json({ signs: ZODIAC_SIGNS });
+});
+
 // GET /api/horoscope?sign=aries&language=en
 router.get("/horoscope", async (req, res) => {
   const { sign, language = "en" } = req.query as Record<string, string>;
@@ -94,11 +99,6 @@ router.get("/horoscope/:sign", async (req, res) => {
     req.log.error({ err }, "Error fetching horoscope");
     res.status(500).json({ error: "Internal server error" });
   }
-});
-
-// GET /api/horoscope/signs — list all zodiac signs
-router.get("/horoscope/signs", (_req, res) => {
-  res.json({ signs: ZODIAC_SIGNS });
 });
 
 export default router;
