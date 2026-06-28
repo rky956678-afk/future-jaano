@@ -1,8 +1,15 @@
+[variables]
+NODE_VERSION = "22"
+
 [phases.install]
-cmds = ["echo 'no install needed'"]
+cmds = [
+  "corepack enable",
+  "corepack prepare pnpm@9.15.4 --activate",
+  "pnpm install --no-frozen-lockfile"
+]
 
 [phases.build]
-cmds = ["echo 'no build needed'"]
+cmds = ["echo 'no additional build'"]
 
 [start]
 cmd = "node lib/api-client-react/server.mjs"

@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
-buildCommand = "echo 'no build needed'"
 
 [deploy]
 startCommand = "node server.mjs"

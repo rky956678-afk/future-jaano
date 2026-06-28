@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/mockup-sandbox build"
 
 [deploy]
 startCommand = "npx serve -s artifacts/mockup-sandbox/dist -l $PORT"

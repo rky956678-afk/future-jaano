@@ -1,8 +1,15 @@
+[variables]
+NODE_VERSION = "22"
+
 [phases.install]
-cmds = ["echo 'no dependencies needed'"]
+cmds = [
+  "corepack enable",
+  "corepack prepare pnpm@9.15.4 --activate",
+  "pnpm install --no-frozen-lockfile"
+]
 
 [phases.build]
-cmds = ["echo 'no build step required'"]
+cmds = ["echo 'no build'"]
 
 [start]
 cmd = "node server.mjs"
