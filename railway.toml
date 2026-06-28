@@ -2,6 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "node lib/api-client-react/server.mjs"
+startCommand = "node --enable-source-maps artifacts/api-server/dist/index.mjs"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3

@@ -9,7 +9,7 @@ cmds = [
 ]
 
 [phases.build]
-cmds = ["echo 'no additional build'"]
+cmds = ["pnpm --filter @workspace/api-server build"]
 
 [start]
-cmd = "node lib/api-client-react/server.mjs"
+cmd = "node --enable-source-maps artifacts/api-server/dist/index.mjs"
