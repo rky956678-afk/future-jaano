@@ -16,7 +16,7 @@ router.get("/status", (_req, res) => {
   res.json({
     success: true,
     api: "Future Jaano API",
-    version: "1.0.0",
+    version: "1.0.1",
     status: "operational",
     timestamp: new Date().toISOString(),
   });
