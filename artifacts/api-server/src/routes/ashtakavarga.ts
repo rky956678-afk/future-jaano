@@ -1,37 +1,20 @@
 import { languageInstruction } from "../lib/languages";
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackAshtakavarga } from "../lib/fallbacks";
 
 const router = Router();
 
-const PLANETS = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
-const PLANETS_HI: Record<string, string> = {
-  Sun: "सूर्य", Moon: "चंद्र", Mars: "मंगल", Mercury: "बुध",
-  Jupiter: "बृहस्पति", Venus: "शुक्र", Saturn: "शनि",
-};
-const SIGNS = ["aries","taurus","gemini","cancer","leo","virgo","libra","scorpio","sagittarius","capricorn","aquarius","pisces"];
+import { ashtakavarga as computeAV, jdFromISO, ascendantSidereal, geocodeCity } from "../lib/jyotish";
 
-function generateApproxAshtakavarga(dob: string) {
-  const seed = dob.replace(/\D/g, "").split("").reduce((a, b) => a + parseInt(b), 0);
-
-  const rows = PLANETS.map((planet, pi) => {
-    const values = SIGNS.map((_, si) => {
-      const val = ((seed + pi * 7 + si * 3) % 5) + 2;
-      return Math.min(8, Math.max(0, val));
-    });
-    const total = values.reduce((a, b) => a + b, 0);
-    const obj: Record<string, number | string> = { planet, planetHi: PLANETS_HI[planet]! };
-    SIGNS.forEach((s, i) => { obj[s] = values[i]!; });
-    obj["total"] = total;
-    return obj;
-  });
-
-  const sarva = SIGNS.map((_, si) =>
-    rows.reduce((sum, row) => sum + (row[SIGNS[si]!] as number), 0)
-  );
-
-  return { rows, sarva };
+function generateRealAshtakavarga(dob: string, tob: string, pob: string) {
+  const geo = geocodeCity(pob);
+  const jd = jdFromISO(dob, tob || "12:00");
+  const lagna = ascendantSidereal(jd, geo.lat, geo.lon);
+  const lagnaIdx = Math.floor(lagna / 30);
+  const av = computeAV(jd, lagnaIdx);
+  return { rows: av.rows, sarva: av.sarva, lagnaIdx };
 }
 
 async function generateAshtakavargaAnalysis(
@@ -62,16 +45,13 @@ Return JSON (rashi names and the analysis text all in ${lang}):
 
 FINAL REMINDER: ${instruction}`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
-  });
-
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallbackAshtakavarga(strongHouses, weakHouses, language),
+  );
 }
 
 // POST /api/ashtakavarga
@@ -84,7 +64,7 @@ router.post("/ashtakavarga", requireAuth, async (req, res) => {
       return;
     }
 
-    const { rows, sarva } = generateApproxAshtakavarga(dateOfBirth);
+    const { rows, sarva } = generateRealAshtakavarga(dateOfBirth, timeOfBirth, placeOfBirth);
     const aiResult = await generateAshtakavargaAnalysis(dateOfBirth, timeOfBirth, placeOfBirth, rows, sarva, language || "en");
 
     res.status(201).json({

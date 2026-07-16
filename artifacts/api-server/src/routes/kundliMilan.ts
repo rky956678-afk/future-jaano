@@ -1,58 +1,47 @@
 import { languageInstruction } from "../lib/languages";
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackMilan } from "../lib/fallbacks";
+import { gunaMilan } from "../lib/gunaMilan";
 
 const router = Router();
 
-async function generateKundliMilanReport(
-  p1Name: string, p1Dob: string, p1Tob: string, p1Pob: string,
-  p2Name: string, p2Dob: string, p2Tob: string, p2Pob: string,
-  language: string
+async function generateMilanAnalysis(
+  p1Name: string, p2Name: string,
+  scores: ReturnType<typeof gunaMilan>,
+  language: string,
 ) {
   const { lang, instruction } = languageInstruction(language);
-
-  const prompt = `You are a Vedic astrology expert specializing in Kundli matching (Ashtakoota system).
+  const prompt = `You are a Vedic astrology expert specializing in Kundli Milan (Ashtakoot matching).
 
 ${instruction}
-Analyze compatibility between:
-Person 1: ${p1Name}, DOB: ${p1Dob}, TOB: ${p1Tob}, POB: ${p1Pob}
-Person 2: ${p2Name}, DOB: ${p2Dob}, TOB: ${p2Tob}, POB: ${p2Pob}
 
-Based on the 8 Kootas (Varna, Vashya, Tara, Yoni, Graha Maitri, Gana, Bhakoota, Nadi) out of maximum 36 points:
-- Varna: max 1, Vashya: max 2, Tara: max 3, Yoni: max 4, Graha Maitri: max 5, Gana: max 6, Bhakoota: max 7, Nadi: max 8
+The couple's ashtakoot scores were computed astronomically from their real Moon positions:
+Boy (${p1Name}): Moon in ${scores.boy.moonRashi}, ${scores.boy.nakshatra} nakshatra, ${scores.boy.varna} varna, ${scores.boy.yoni} yoni
+Girl (${p2Name}): Moon in ${scores.girl.moonRashi}, ${scores.girl.nakshatra} nakshatra, ${scores.girl.varna} varna, ${scores.girl.yoni} yoni
 
-Return JSON (all text values — compatibility, analysis, strengths, challenges, recommendation — in ${lang}):
+Guna scores (out of max): Varna ${scores.varna}/1, Vashya ${scores.vashya}/2, Tara ${scores.tara}/3, Yoni ${scores.yoni}/4, Graha Maitri ${scores.grihaMaitri}/5, Gana ${scores.gana}/6, Bhakoota ${scores.bhakoota}/7, Nadi ${scores.nadi}/8.
+TOTAL: ${scores.totalScore}/36.
+${scores.nadiDosha ? "NADI DOSHA is present." : ""} ${scores.bhakootaDosha ? "BHAKOOTA DOSHA is present." : ""} ${scores.ganaDosha ? "GANA DOSHA is present." : ""}
+
+Write an expert interpretation of THESE EXACT scores. Return JSON (all text in ${lang}):
 {
-  "totalScore": <number between 18-34>,
-  "maxScore": 36,
-  "compatibility": "<Excellent/Good/Average/Below Average>",
-  "varna": <0 or 1>,
-  "vashya": <0, 1 or 2>,
-  "tara": <0, 1, 2 or 3>,
-  "yoni": <0 to 4>,
-  "grihaMaitri": <0 to 5>,
-  "gana": <0 or 6>,
-  "bhakoota": <0 or 7>,
-  "nadi": <0 or 8>,
-  "analysis": "detailed analysis of the match...",
+  "analysis": "detailed analysis of the match based on the scores above...",
   "strengths": "areas where the couple will complement each other...",
-  "challenges": "potential challenges and how to overcome them...",
+  "challenges": "potential challenges (mention any doshas above) and remedies to overcome them...",
   "recommendation": "overall recommendation for this match..."
 }
 
 FINAL REMINDER: ${instruction}`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
-  });
-
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallbackMilan(p1Name, p2Name, "", "", language),
+  );
 }
 
 // POST /api/kundli-milan
@@ -66,28 +55,41 @@ router.post("/kundli-milan", requireAuth, async (req, res) => {
       return;
     }
 
-    const result = await generateKundliMilanReport(
-      person1Name, person1Dob, person1Tob, person1Pob,
-      person2Name, person2Dob, person2Tob, person2Pob,
-      language || "en"
+    // ── Real Ashtakoot computation from actual Moon positions ──
+    const scores = gunaMilan(
+      { dob: person1Dob, tob: person1Tob, pob: person1Pob },
+      { dob: person2Dob, tob: person2Tob, pob: person2Pob },
     );
 
+    const isHi = (language || "en").toLowerCase().startsWith("hi");
+    const compatibility =
+      scores.totalScore >= 30 ? (isHi ? "उत्तम" : "Excellent") :
+      scores.totalScore >= 24 ? (isHi ? "अच्छा" : "Good") :
+      scores.totalScore >= 18 ? (isHi ? "सामान्य" : "Average") :
+      (isHi ? "औसत से कम" : "Below Average");
+
+    const text = await generateMilanAnalysis(person1Name, person2Name, scores, language || "en");
+
     res.status(201).json({
-      totalScore: result.totalScore || 24,
+      totalScore: scores.totalScore,
       maxScore: 36,
-      compatibility: result.compatibility || "Good",
-      varna: result.varna ?? 1,
-      vashya: result.vashya ?? 2,
-      tara: result.tara ?? 2,
-      yoni: result.yoni ?? 3,
-      grihaMaitri: result.grihaMaitri ?? 4,
-      gana: result.gana ?? 6,
-      bhakoota: result.bhakoota ?? 0,
-      nadi: result.nadi ?? 8,
-      analysis: result.analysis || "Kundli Milan analysis completed.",
-      strengths: result.strengths || "",
-      challenges: result.challenges || "",
-      recommendation: result.recommendation || "",
+      compatibility,
+      varna: scores.varna,
+      vashya: scores.vashya,
+      tara: scores.tara,
+      yoni: scores.yoni,
+      grihaMaitri: scores.grihaMaitri,
+      gana: scores.gana,
+      bhakoota: scores.bhakoota,
+      nadi: scores.nadi,
+      analysis: text.analysis || "Kundli Milan analysis completed.",
+      strengths: text.strengths || "",
+      challenges: text.challenges || "",
+      recommendation: text.recommendation || "",
+      // Additive detail fields (real computed data)
+      boyDetails: scores.boy,
+      girlDetails: scores.girl,
+      doshas: { nadi: scores.nadiDosha, bhakoota: scores.bhakootaDosha, gana: scores.ganaDosha },
     });
   } catch (err) {
     req.log.error({ err }, "Error creating kundli milan");

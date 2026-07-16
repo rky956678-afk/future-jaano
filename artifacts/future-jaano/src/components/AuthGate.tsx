@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useUser } from '@/lib/clerk';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/lib/language';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,8 +56,18 @@ export function AuthGate({ children, feature }: AuthGateProps) {
   const { t, language } = useLanguage();
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
+  // If Clerk fails to initialise (bad/missing key, blocked network, wrong
+  // domain), isLoaded stays false forever and the page used to render blank.
+  // After a short timeout we fall through to the sign-in card instead.
+  const [authTimedOut, setAuthTimedOut] = useState(false);
 
   const list = language === 'hi' ? testimonialHi : testimonials;
+
+  useEffect(() => {
+    if (isLoaded) return;
+    const timer = setTimeout(() => setAuthTimedOut(true), 6000);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
 
   useEffect(() => {
     if (!autoplay) return;
@@ -67,7 +77,17 @@ export function AuthGate({ children, feature }: AuthGateProps) {
     return () => clearInterval(id);
   }, [autoplay, list.length]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded && !authTimedOut) {
+    // Visible loading state instead of a blank page
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+        <p className="text-sm text-white/50">
+          {t('Loading…', 'लोड हो रहा है…')}
+        </p>
+      </div>
+    );
+  }
   if (isSignedIn) return <>{children}</>;
 
   const prev = () => { setAutoplay(false); setTestimonialIdx(i => (i - 1 + list.length) % list.length); };

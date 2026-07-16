@@ -3,7 +3,8 @@ import { Router } from "express";
 import { db, problemsTable, readingsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackProblems } from "../lib/fallbacks";
 
 const router = Router();
 
@@ -29,16 +30,13 @@ Provide comprehensive remedies. Format as JSON:
 IMPORTANT: The mantra field MUST always be written in Sanskrit Devanagari script regardless of response language.
 FINAL REMINDER: All other field values must be in ${lang}. ${instruction}`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
-  });
-
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallbackProblems(category, language),
+  );
 }
 
 // POST /api/problems

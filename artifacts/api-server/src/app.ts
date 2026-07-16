@@ -29,14 +29,42 @@ const REQUIRED_VARS: Record<string, string> = {
 
 const missing = Object.entries(REQUIRED_VARS).filter(([k]) => !process.env[k]);
 if (missing.length > 0) {
-  logger.error(
+  const message =
     "\n╔══════════════════════════════════════════════════╗\n" +
-    "║  STARTUP FAILED — missing environment variables  ║\n" +
+    "║        Missing environment variables             ║\n" +
     "╚══════════════════════════════════════════════════╝\n" +
-    missing.map(([k, hint]) => `  ✗ ${k}\n      → ${hint}`).join("\n") +
-    "\n\nSet these in Railway → Variables before deploying.\n"
+    missing.map(([k, hint]) => `  ✗ ${k}\n      → ${hint}`).join("\n");
+
+  // DATABASE_URL is truly required — the app cannot function without it.
+  if (!process.env.DATABASE_URL) {
+    logger.error(message + "\n\nDATABASE_URL is required. Set it before starting.\n");
+    process.exit(1);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    // Boot anyway with fallbacks so a missing optional key never takes the
+    // whole site down. Set STRICT_ENV=true to restore hard-fail behaviour.
+    if (process.env.STRICT_ENV === "true") {
+      logger.error(message + "\n\nSet these in Railway → Variables before deploying.\n");
+      process.exit(1);
+    }
+    logger.warn(
+      message +
+      "\n\nPRODUCTION with missing keys — running degraded:" +
+      (missing.some(([k]) => k.startsWith("CLERK")) ? "\n  • Auth → sign-in disabled (set Clerk keys, or DEV_AUTH=true for demo login)" : "") +
+      (missing.some(([k]) => k === "OPENAI_API_KEY") ? "\n  • AI features → built-in fallback content (real astronomy engine still active)" : "") +
+      "\n"
+    );
+  } else {
+  // Dev mode: warn and continue with graceful fallbacks
+  logger.warn(
+    message +
+    "\n\nRunning in DEV mode with fallbacks:" +
+    (missing.some(([k]) => k.startsWith("CLERK")) ? "\n  • Auth → local demo user (no Clerk)" : "") +
+    (missing.some(([k]) => k === "OPENAI_API_KEY") ? "\n  • AI features → built-in fallback content" : "") +
+    "\n"
   );
-  process.exit(1);
+  }
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -108,7 +136,10 @@ app.use(cookieParser());
 // ─── Public routes — registered BEFORE clerkMiddleware ───────────────────────
 
 // GET / — API root
-app.get("/", (_req, res) => {
+app.get("/", (_req, res, next) => {
+  // When the built frontend is being served (single-service deploy), let the
+  // static/SPA handlers below return index.html instead of API info JSON.
+  if (process.env.__FRONTEND_SERVED === "1") return next();
   res.json({
     success:  true,
     message:  "Future Jaano API is running",
@@ -262,18 +293,51 @@ app.use(swaggerRouter);
 
 // ─── Clerk middleware ─────────────────────────────────────────────────────────
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// Only mount Clerk when configured — in dev without keys, requireAuth
+// falls back to a local demo user instead.
+if (process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY) {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+}
 
 // ─── API routes ───────────────────────────────────────────────────────────────
 
 app.use("/api", router);
+
+// ─── Frontend static serving (single-service deploy, e.g. Railway) ───────────
+// Serves the built React app from artifacts/future-jaano/dist when present,
+// with an SPA fallback so client-side routes like /kundli work on refresh.
+{
+  const path = require("node:path") as typeof import("node:path");
+  const fs = require("node:fs") as typeof import("node:fs");
+  const candidates = [
+    process.env.FRONTEND_DIST,
+    path.resolve(__dirname, "../../future-jaano/dist"),
+    path.resolve(process.cwd(), "artifacts/future-jaano/dist"),
+    path.resolve(process.cwd(), "../future-jaano/dist"),
+  ].filter(Boolean) as string[];
+  const frontendDist = candidates.find(
+    (p) => fs.existsSync(path.join(p, "index.html")),
+  );
+  if (frontendDist) {
+    process.env.__FRONTEND_SERVED = "1";
+    logger.info({ frontendDist }, "Serving frontend static files");
+    app.use(express.static(frontendDist, { index: "index.html", maxAge: "1h" }));
+    // SPA fallback: any non-API GET that accepts HTML → index.html
+    app.get(/^\/(?!api\/|docs|health|debug).*/, (req: Request, res: Response, next: NextFunction) => {
+      if (req.method !== "GET" || !req.accepts("html")) return next();
+      res.sendFile(path.join(frontendDist, "index.html"));
+    });
+  } else {
+    logger.warn("Frontend dist not found — running API-only (set FRONTEND_DIST to override)");
+  }
+}
 
 // ─── 404 catch-all ────────────────────────────────────────────────────────────
 

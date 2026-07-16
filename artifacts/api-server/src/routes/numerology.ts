@@ -3,7 +3,8 @@ import { Router } from "express";
 import { db, numerologyTable, readingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackNumerology } from "../lib/fallbacks";
 
 const router = Router();
 
@@ -54,16 +55,13 @@ Return JSON:
 
 FINAL REMINDER: Every text value must be in ${lang}. ${instruction}`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
-  });
-
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallbackNumerology(fullName, dateOfBirth, lifePathNumber, destinyNumber, language),
+  );
 }
 
 // POST /api/numerology

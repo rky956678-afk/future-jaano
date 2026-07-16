@@ -133,7 +133,22 @@ export default defineConfig({
     port,
     strictPort: true,
     host: "0.0.0.0",
-    allowedHosts: true
+    allowedHosts: true,
+    // Dev proxy → local API server so /api works without a shared reverse proxy
+    proxy: {
+      "/api": {
+        target: process.env.API_PROXY_TARGET || "http://localhost:8080",
+        changeOrigin: true
+      },
+      "/health": {
+        target: process.env.API_PROXY_TARGET || "http://localhost:8080",
+        changeOrigin: true
+      },
+      "/docs": {
+        target: process.env.API_PROXY_TARGET || "http://localhost:8080",
+        changeOrigin: true
+      }
+    }
   },
   preview: {
     port,

@@ -1,106 +1,89 @@
 import { Router } from "express";
+import {
+  panchang as computePanchang,
+  inauspiciousWindows,
+  geocodeCity,
+  jdFromISO,
+  RASHIS_EN, RASHIS_HI, NAKSHATRAS_HI,
+} from "../lib/jyotish";
 
 const router = Router();
 
-const TITHIS = [
-  "Pratipada","Dwitiya","Tritiya","Chaturthi","Panchami",
-  "Shashthi","Saptami","Ashtami","Navami","Dashami",
-  "Ekadashi","Dwadashi","Trayodashi","Chaturdashi","Purnima/Amavasya",
-];
-const NAKSHATRAS = [
-  "Ashwini","Bharani","Krittika","Rohini","Mrigashira","Ardra",
-  "Punarvasu","Pushya","Ashlesha","Magha","Purva Phalguni","Uttara Phalguni",
-  "Hasta","Chitra","Swati","Vishakha","Anuradha","Jyeshtha",
-  "Mula","Purva Ashadha","Uttara Ashadha","Shravana","Dhanishtha","Shatabhisha",
-  "Purva Bhadrapada","Uttara Bhadrapada","Revati",
-];
-const YOGAS = [
-  "Vishkambha","Priti","Ayushman","Saubhagya","Shobhana","Atiganda","Sukarman",
-  "Dhriti","Shula","Ganda","Vriddhi","Dhruva","Vyaghata","Harshana","Vajra",
-  "Siddhi","Vyatipata","Variyan","Parigha","Shiva","Siddha","Sadhya","Shubha",
-  "Shukla","Brahma","Indra","Vaidhriti",
-];
-const KARANS = [
-  "Bava","Balava","Kaulava","Taitila","Garaja","Vanija","Vishti",
-  "Shakuni","Chatushpada","Naga","Kimstughna",
-];
-const RASHIS = [
-  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
-  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
-];
-const RASHIS_HI = [
-  "मेष","वृष","मिथुन","कर्क","सिंह","कन्या",
-  "तुला","वृश्चिक","धनु","मकर","कुम्भ","मीन",
-];
 const VAARAS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-const RAHU_KAAL: Record<number, string> = {
-  0: "4:30 PM - 6:00 PM", 1: "7:30 AM - 9:00 AM",
-  2: "3:00 PM - 4:30 PM", 3: "12:00 PM - 1:30 PM",
-  4: "1:30 PM - 3:00 PM", 5: "10:30 AM - 12:00 PM",
-  6: "9:00 AM - 10:30 AM",
-};
-const YAMGHANTA: Record<number, string> = {
-  0: "12:00 PM - 1:30 PM", 1: "10:30 AM - 12:00 PM",
-  2: "9:00 AM - 10:30 AM", 3: "7:30 AM - 9:00 AM",
-  4: "6:00 AM - 7:30 AM", 5: "3:00 PM - 4:30 PM",
-  6: "1:30 PM - 3:00 PM",
-};
-const GULIKA: Record<number, string> = {
-  0: "3:00 PM - 4:30 PM", 1: "1:30 PM - 3:00 PM",
-  2: "12:00 PM - 1:30 PM", 3: "10:30 AM - 12:00 PM",
-  4: "9:00 AM - 10:30 AM", 5: "7:30 AM - 9:00 AM",
-  6: "6:00 AM - 7:30 AM",
+const TITHI_HI: Record<string, string> = {
+  Pratipada: "प्रतिपदा", Dwitiya: "द्वितीया", Tritiya: "तृतीया", Chaturthi: "चतुर्थी",
+  Panchami: "पंचमी", Shashthi: "षष्ठी", Saptami: "सप्तमी", Ashtami: "अष्टमी",
+  Navami: "नवमी", Dashami: "दशमी", Ekadashi: "एकादशी", Dwadashi: "द्वादशी",
+  Trayodashi: "त्रयोदशी", Chaturdashi: "चतुर्दशी", Purnima: "पूर्णिमा", Amavasya: "अमावस्या",
 };
 
 const FESTIVALS: Record<string, string> = {
-  "01-14": "Makar Sankranti","01-26": "Republic Day",
-  "03-25": "Holi","04-14": "Ram Navami",
-  "08-15": "Independence Day","09-05": "Ganesh Chaturthi",
-  "10-02": "Gandhi Jayanti","10-24": "Diwali",
-  "11-01": "Diwali (Laxmi Puja)","12-25": "Christmas",
+  "01-14": "Makar Sankranti", "01-26": "Republic Day",
+  "03-25": "Holi", "04-14": "Ram Navami",
+  "08-15": "Independence Day", "09-05": "Ganesh Chaturthi",
+  "10-02": "Gandhi Jayanti", "10-24": "Diwali",
+  "11-01": "Diwali (Laxmi Puja)", "12-25": "Christmas",
 };
 
-function getPanchang(dateStr: string) {
-  const date = new Date(dateStr + "T06:00:00");
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
-  const weekDay = date.getDay();
+// Simple per-day+location cache — panchang for a given day/place never changes
+const cache = new Map<string, unknown>();
 
-  const tithi = TITHIS[dayOfYear % 15];
-  const nakshatra = NAKSHATRAS[dayOfYear % 27];
-  const yoga = YOGAS[dayOfYear % 27];
-  const karan = KARANS[dayOfYear % 11];
-  const vaara = VAARAS[weekDay];
-  const moonRashiIdx = Math.floor(dayOfYear / 2.25) % 12;
-  const sunRashiIdx = Math.floor((date.getMonth() + (date.getDate() > 14 ? 0.5 : 0))) % 12;
+function getPanchang(dateStr: string, place?: string, latQ?: string, lonQ?: string) {
+  const geo = geocodeCity(place);
+  const lat = latQ ? parseFloat(latQ) : geo.lat;
+  const lon = lonQ ? parseFloat(lonQ) : geo.lon;
+
+  const key = `${dateStr}:${lat.toFixed(2)}:${lon.toFixed(2)}`;
+  if (cache.has(key)) return cache.get(key);
+
+  // Panchang elements evaluated at local sunrise-ish (6 AM IST) per convention,
+  // muhurta windows from the real sunrise/sunset at the location.
+  const jd = jdFromISO(dateStr, "06:00");
+  const p = computePanchang(jd);
+  const date = new Date(dateStr + "T06:00:00");
+  const weekDay = date.getDay();
+  const windows = inauspiciousWindows(dateStr, weekDay, lat, lon);
+
+  // Hindi tithi label
+  const baseTithi = p.tithiName.replace(/^(Shukla|Krishna) /, "");
+  const pakshaHi = p.paksha === "Shukla" ? "शुक्ल पक्ष" : "कृष्ण पक्ष";
+  const tithiLabel =
+    baseTithi === "Purnima" || baseTithi === "Amavasya"
+      ? `${baseTithi} (${TITHI_HI[baseTithi]})`
+      : `${p.tithiName} (${pakshaHi} ${TITHI_HI[baseTithi] || baseTithi})`;
 
   const mmdd = `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  const festival = FESTIVALS[mmdd] || "";
 
-  return {
+  const result = {
     date: dateStr,
-    tithi: tithi!,
-    nakshatra: nakshatra!,
-    yoga: yoga!,
-    karan: karan!,
-    vaara,
-    sunrise: "6:10 AM",
-    sunset: "6:35 PM",
-    rahuKaal: RAHU_KAAL[weekDay]!,
-    yamaghanta: YAMGHANTA[weekDay]!,
-    gulikaKaal: GULIKA[weekDay]!,
-    abhijitMuhurat: "11:51 AM - 12:41 PM",
-    moonRashi: `${RASHIS[moonRashiIdx]} (${RASHIS_HI[moonRashiIdx]})`,
-    sunRashi: `${RASHIS[sunRashiIdx]} (${RASHIS_HI[sunRashiIdx]})`,
-    festivals: festival,
+    tithi: tithiLabel,
+    nakshatra: `${p.nakshatraName} (${NAKSHATRAS_HI[p.nakshatraIndex]})`,
+    yoga: p.yogaName,
+    karan: p.karanaName,
+    vaara: VAARAS[weekDay],
+    sunrise: windows.sunrise,
+    sunset: windows.sunset,
+    rahuKaal: windows.rahuKaal,
+    yamaghanta: windows.yamaghanta,
+    gulikaKaal: windows.gulikaKaal,
+    abhijitMuhurat: windows.abhijitMuhurat,
+    moonRashi: `${RASHIS_EN[p.moonRashiIndex]} (${RASHIS_HI[p.moonRashiIndex]})`,
+    sunRashi: `${RASHIS_EN[p.sunRashiIndex]} (${RASHIS_HI[p.sunRashiIndex]})`,
+    festivals: FESTIVALS[mmdd] || "",
+    location: place || geo.matched,
   };
+  cache.set(key, result);
+  if (cache.size > 2000) cache.clear();
+  return result;
 }
 
-// GET /api/panchang
+// GET /api/panchang?date=YYYY-MM-DD&place=Lucknow (or &lat=..&lon=..)
 router.get("/panchang", (req, res) => {
   try {
-    const dateStr = (req.query["date"] as string) || new Date().toISOString().split("T")[0]!;
-    const data = getPanchang(dateStr);
+    const dateStr = (req.query["date"] as string) || new Date(Date.now() + 5.5 * 3600000).toISOString().split("T")[0]!;
+    const place = req.query["place"] as string | undefined;
+    const data = getPanchang(dateStr, place, req.query["lat"] as string, req.query["lon"] as string);
     res.json(data);
   } catch (err) {
     req.log.error({ err }, "Error getting panchang");

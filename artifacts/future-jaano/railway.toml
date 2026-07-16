@@ -1,7 +1,0 @@
-[build]
-builder = "nixpacks"
-
-[deploy]
-startCommand = "npx serve -s artifacts/future-jaano/dist -l $PORT"
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3

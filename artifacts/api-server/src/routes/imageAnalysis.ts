@@ -3,11 +3,12 @@ import { Router } from "express";
 import { db, vastuTable, palmTable, faceTable, readingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackVastu, fallbackPalm, fallbackFace } from "../lib/fallbacks";
 
 const router = Router();
 
-async function analyzeWithVision(imageBase64: string, systemPrompt: string, language: string) {
+async function analyzeWithVision(imageBase64: string, systemPrompt: string, language: string, fallback: Record<string, unknown>): Promise<any> {
   const lang = resolveLanguageName(language);
   const scriptNote =
     lang === "Hindi"
@@ -15,9 +16,8 @@ async function analyzeWithVision(imageBase64: string, systemPrompt: string, lang
       : lang === "English"
       ? "All field values must be written in English."
       : `All field VALUES must be written in ${lang} using its native script. Do NOT use Roman/English transliteration. Only JSON keys remain in English.`;
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       {
         role: "system",
         content: `You are a multilingual expert. CRITICAL OUTPUT LANGUAGE: ${lang}. ${scriptNote}`,
@@ -36,9 +36,8 @@ async function analyzeWithVision(imageBase64: string, systemPrompt: string, lang
         ],
       },
     ],
-    response_format: { type: "json_object" },
-  });
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallback,
+  );
 }
 
 // POST /api/vastu/analyze
@@ -77,7 +76,7 @@ Return JSON with this EXACT structure:
 Return between 2-6 doshas based on what you actually see. If a room is Vastu-compliant, return fewer doshas with low severity.
 Each dosh MUST have a practical, actionable upaay.`;
 
-    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en");
+    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en", fallbackVastu(roomType, language));
 
     const doshas = Array.isArray(aiResult.doshas) ? aiResult.doshas : [];
 
@@ -160,7 +159,7 @@ Return JSON:
   "fortunePrediction": "overall fortune prediction"
 }`;
 
-    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en");
+    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en", fallbackPalm(language));
 
     const [palm] = await db.insert(palmTable).values({
       userId: dbUser.id,
@@ -241,7 +240,7 @@ Return JSON:
   "healthIndicators": "health indicators from face"
 }`;
 
-    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en");
+    const aiResult = await analyzeWithVision(imageBase64, systemPrompt, language || "en", fallbackFace(language));
 
     const [face] = await db.insert(faceTable).values({
       userId: dbUser.id,

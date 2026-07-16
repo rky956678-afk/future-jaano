@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useUser, useAuth } from '@clerk/react';
+import { useUser, useAuth } from '@/lib/clerk';
 import { useUpdateMyProfile } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';

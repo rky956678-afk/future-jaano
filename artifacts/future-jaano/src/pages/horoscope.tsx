@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { setUserSign, type ZodiacKey } from '@/lib/userProfile';
-import { useUser } from '@clerk/react';
+import { useUser } from '@/lib/clerk';
 import { useUpdateMyProfile } from '@workspace/api-client-react';
 
 const signs = [

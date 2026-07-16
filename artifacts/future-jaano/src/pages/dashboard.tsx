@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/lib/language';
-import { useUser } from '@clerk/react';
+import { useUser } from '@/lib/clerk';
 import { useGetUserDashboard } from '@workspace/api-client-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'wouter';

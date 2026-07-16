@@ -1,63 +1,28 @@
 import { languageInstruction } from "../lib/languages";
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { openai } from "../lib/openai";
+import { aiJson } from "../lib/openai";
+import { fallbackDasha } from "../lib/fallbacks";
 
 const router = Router();
 
-// Vimshottari Dasha planet years
-const DASHA_YEARS: Record<string, number> = {
-  Ketu: 7, Venus: 20, Sun: 6, Moon: 10, Mars: 7,
-  Rahu: 18, Jupiter: 16, Saturn: 19, Mercury: 17,
-};
+// Real Vimshottari Dasha from the Moon's actual birth nakshatra
+import { vimshottari, jdFromISO } from "../lib/jyotish";
+
 const DASHA_ORDER = ["Ketu","Venus","Sun","Moon","Mars","Rahu","Jupiter","Saturn","Mercury"];
-const DASHA_HI: Record<string, string> = {
-  Ketu: "केतु", Venus: "शुक्र", Sun: "सूर्य", Moon: "चंद्र", Mars: "मंगल",
-  Rahu: "राहु", Jupiter: "बृहस्पति", Saturn: "शनि", Mercury: "बुध",
-};
 
-function calculateDasha(dob: string) {
-  const birth = new Date(dob);
-  const today = new Date();
-  const dayOfYear = Math.floor((birth.getTime() - new Date(birth.getFullYear(), 0, 0).getTime()) / 86400000);
-  // Use nakshatra index to determine starting dasha (simplified)
-  const nakshatraIndex = dayOfYear % 27;
-  const dashaOwnerIndex = Math.floor(nakshatraIndex / 3) % 9;
-
-  const periods: Array<{ planet: string; planetHi: string; startDate: string; endDate: string; years: number; interpretation: string }> = [];
-  let currentDate = new Date(birth);
-
-  for (let i = 0; i < 9; i++) {
-    const planetIndex = (dashaOwnerIndex + i) % 9;
-    const planet = DASHA_ORDER[planetIndex]!;
-    const years = DASHA_YEARS[planet]!;
-    const startDate = currentDate.toISOString().split("T")[0]!;
-    const endDate = new Date(currentDate.getTime() + years * 365.25 * 86400000).toISOString().split("T")[0]!;
-    periods.push({ planet, planetHi: DASHA_HI[planet]!, startDate, endDate, years, interpretation: "" });
-    currentDate = new Date(currentDate.getTime() + years * 365.25 * 86400000);
-  }
-
-  // Find current dasha
-  let currentDasha = periods[0]!;
-  let currentAntardasha = "";
-  for (const p of periods) {
-    if (new Date(p.startDate) <= today && today <= new Date(p.endDate)) {
-      currentDasha = p;
-      // Calculate antardasha
-      const elapsed = today.getTime() - new Date(p.startDate).getTime();
-      const total = new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
-      const fraction = elapsed / total;
-      const antarIndex = Math.floor(fraction * 9);
-      const antarPlanetIndex = (DASHA_ORDER.indexOf(p.planet) + antarIndex) % 9;
-      currentAntardasha = DASHA_ORDER[antarPlanetIndex]!;
-      break;
-    }
-  }
-
-  const remainingMs = new Date(currentDasha.endDate).getTime() - today.getTime();
-  const remainingYears = (remainingMs / (365.25 * 86400000)).toFixed(1);
-
-  return { currentDasha, currentAntardasha, dashaBalance: `${remainingYears} years remaining`, periods };
+function calculateDasha(dob: string, tob: string) {
+  const jd = jdFromISO(dob, tob || "12:00");
+  const v = vimshottari(jd);
+  return {
+    currentDasha: v.currentDasha,
+    currentAntardasha: v.currentAntardasha,
+    dashaBalance: v.dashaBalance,
+    periods: v.periods.map((p) => ({ ...p, interpretation: "" })),
+    birthNakshatra: v.birthNakshatra,
+    birthNakshatraHi: v.birthNakshatraHi,
+    moonRashi: v.moonRashi,
+  };
 }
 
 async function generateDashaInterpretations(
@@ -86,16 +51,13 @@ Return JSON (all interpretation text in ${lang}; JSON keys for planet names stay
 
 FINAL REMINDER: ${instruction}`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
+  return aiJson(
+    [
       { role: "system", content: instruction },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" },
-  });
-
-  return JSON.parse(response.choices[0].message.content || "{}");
+    fallbackDasha(currentDasha, currentAntar, language),
+  );
 }
 
 // POST /api/dasha
@@ -108,7 +70,7 @@ router.post("/dasha", requireAuth, async (req, res) => {
       return;
     }
 
-    const { currentDasha, currentAntardasha, dashaBalance, periods } = calculateDasha(dateOfBirth);
+    const { currentDasha, currentAntardasha, dashaBalance, periods, birthNakshatra, birthNakshatraHi, moonRashi } = calculateDasha(dateOfBirth, timeOfBirth);
     const aiResult = await generateDashaInterpretations(
       dateOfBirth, timeOfBirth, placeOfBirth,
       currentDasha.planet, currentAntardasha, periods, language || "en"
@@ -126,6 +88,9 @@ router.post("/dasha", requireAuth, async (req, res) => {
       dashaBalance,
       periods: periodsWithInterpretation,
       currentPeriodInterpretation: aiResult.currentPeriodInterpretation || "Current dasha analysis completed.",
+      birthNakshatra,
+      birthNakshatraHi,
+      moonRashi,
     });
   } catch (err) {
     req.log.error({ err }, "Error creating dasha report");

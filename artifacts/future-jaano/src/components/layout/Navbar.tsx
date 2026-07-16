@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/lib/language';
-import { useUser, UserButton } from '@clerk/react';
+import { useUser, UserButton } from '@/lib/clerk';
 import { Menu, Bell, ChevronDown, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';

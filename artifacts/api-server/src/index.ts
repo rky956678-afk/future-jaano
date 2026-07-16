@@ -2,6 +2,7 @@ import http from "node:http";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startPushCron } from "./lib/cron";
+import { seedDatabase } from "./lib/seed";
 
 const port = Number(process.env.PORT || "3000");
 
@@ -16,6 +17,7 @@ server.listen(port, () => {
   logger.info({ port, env: process.env.NODE_ENV ?? "development" }, "🚀 Future Jaano API started");
 
   if (process.env.DATABASE_URL) {
+    void seedDatabase();
     startPushCron();
     logger.info("Push notification cron started");
   } else {

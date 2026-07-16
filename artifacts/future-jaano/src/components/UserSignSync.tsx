@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useUser } from '@clerk/react';
+import { useUser } from '@/lib/clerk';
 import { useGetMyProfile, useUpdateMyProfile } from '@workspace/api-client-react';
 import { getUserSign, setUserSign, ZODIAC_KEYS, type ZodiacKey } from '@/lib/userProfile';
 

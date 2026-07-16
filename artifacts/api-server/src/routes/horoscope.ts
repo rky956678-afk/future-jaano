@@ -33,7 +33,15 @@ function mockHoroscope(sign: string) {
 
 async function fetchDailyHoroscope(sign: string, language: string) {
   if (!isOpenAIConfigured()) return mockHoroscope(sign);
+  try {
+    return await fetchDailyHoroscopeAI(sign, language);
+  } catch {
+    // AI call failed (network/quota) — serve mock so the feature keeps working
+    return mockHoroscope(sign);
+  }
+}
 
+async function fetchDailyHoroscopeAI(sign: string, language: string) {
   const lang = resolveLanguageName(language);
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
@@ -73,21 +81,30 @@ Return ONLY a JSON object with these exact fields:
   };
 }
 
-async function fetchWeeklyHoroscope(sign: string, language: string) {
-  if (!isOpenAIConfigured()) {
-    return {
-      sign,
-      weekStart: getMonday(),
-      weekEnd:   getSunday(),
-      prediction: "Weekly AI horoscope is currently unavailable.",
-      highlights: ["Stay positive", "Focus on goals", "Connect with loved ones"],
-      luckyDays: ["Wednesday", "Friday"],
-      luckyNumber: 7,
-      luckyColor: "Blue",
-      theme: "Growth",
-    };
-  }
+function mockWeeklyHoroscope(sign: string) {
+  return {
+    sign,
+    weekStart: getMonday(),
+    weekEnd:   getSunday(),
+    prediction: "This week brings steady progress. Focus your energy mid-week when planetary support peaks, and use the weekend to recharge and reconnect with family.",
+    highlights: ["Career momentum builds mid-week", "A financial matter resolves favourably", "Good time to strengthen relationships"],
+    luckyDays: ["Wednesday", "Friday"],
+    luckyNumber: 7,
+    luckyColor: "Blue",
+    theme: "Growth",
+  };
+}
 
+async function fetchWeeklyHoroscope(sign: string, language: string) {
+  if (!isOpenAIConfigured()) return mockWeeklyHoroscope(sign);
+  try {
+    return await fetchWeeklyHoroscopeAI(sign, language);
+  } catch {
+    return mockWeeklyHoroscope(sign);
+  }
+}
+
+async function fetchWeeklyHoroscopeAI(sign: string, language: string) {
   const lang = resolveLanguageName(language);
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
