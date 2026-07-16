@@ -2,6 +2,8 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "node --enable-source-maps artifacts/api-server/dist/index.mjs"
+startCommand = "pnpm --filter @workspace/db run push-force || echo 'db push skipped'; node --enable-source-maps artifacts/api-server/dist/index.mjs"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
